@@ -2,8 +2,16 @@ use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
+use winapi::shared::windef::POINT;
+use winapi::um::winuser::GetCursorPos;
 use windows::Win32::Graphics::Gdi::GetPixel;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY, VK_E};
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
+
+use crate::destroyer_earth::destroyer::rotation;
+use crate::general::general::general_is_soul_triggered;
+
+mod destroyer_earth;
+mod general;
 
 #[cfg(windows)]
 fn send_key(key: VIRTUAL_KEY, down: bool) {
@@ -35,10 +43,19 @@ fn main() {
         let hdc = windows::Win32::Graphics::Gdi::GetDC(hwnd);
 
         loop {
-            sleep(time::Duration::from_millis(5));
+            sleep(time::Duration::from_millis(2));
 
             // f1
-            if GetAsyncKeyState(0x70) != 0 {}
+            if GetAsyncKeyState(0x70) != 0 {
+                let mut point = POINT::default();
+                GetCursorPos(&mut point);
+                let pxl = GetPixel(hdc, point.x, point.y);
+                let red = pxl & 0xFF;
+                let green = (pxl >> 8) & 0xff;
+                let blue = (pxl >> 16) & 0xff;
+                println!("x: {}, y: {}, pxl: {}, hex: 0x{:x}{:x}{:x}", point.x, point.y, pxl, red, green, blue);
+                sleep(time::Duration::from_secs(1));
+            }
 
             // f4
             if GetAsyncKeyState(0x73) != 0 {
@@ -47,11 +64,7 @@ fn main() {
 
             // f23
             if GetAsyncKeyState(0x86) != 0 {
-                if GetPixel(hdc, 742, 887) == 4331614 {
-                    // println!("{}", GetPixel(hdc, 742, 887));
-                    send_key(VK_E, true);
-                    send_key(VK_E, false);
-                }
+                rotation(hdc);
             }
         }
     }
