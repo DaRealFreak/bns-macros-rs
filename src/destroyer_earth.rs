@@ -59,7 +59,7 @@ pub mod destroyer {
             send_key(skill_cleave(), true);
             send_key(skill_cleave(), false);
             sleep(time::Duration::from_millis(5));
-            return
+            return;
         }
 
         // change flag to use fury after next mighty cleave again
@@ -133,14 +133,26 @@ pub mod destroyer {
 
             sleep(time::Duration::from_millis(50));
 
-            while skill_cleave_available(hdc) {
-                send_key(skill_cleave(), true);
-                send_key(skill_cleave(), false);
+            let mut in_soulburn = false;
+
+            loop {
+                let cleave_availability = skill_cleave_available(hdc);
+                if cleave_availability.0 {
+                    in_soulburn = cleave_availability.1;
+                    send_key(skill_cleave(), true);
+                    send_key(skill_cleave(), false);
+                } else {
+                    break;
+                }
             }
 
             sleep(time::Duration::from_millis(95));
 
-            // ToDo: sb version
+            // sleep 170ms during SB due to awk mc having 18s cd instead of 24s
+            // on 40 ms the script would try to anicancel cleave causing a delay after cleave before mc
+            if in_soulburn {
+                sleep(time::Duration::from_millis(80));
+            }
         }
 
         send_key(skill_wrath(), true);
@@ -148,8 +160,15 @@ pub mod destroyer {
         sleep(time::Duration::from_millis(2));
     }
 
-    unsafe fn skill_cleave_available(hdc: HDC) -> bool {
-        GetPixel(hdc, 1147, 887) == 1717347
+    // returns if cleave is available and if it's the soulburn version
+    unsafe fn skill_cleave_available(hdc: HDC) -> (bool, bool) {
+        let pxl = GetPixel(hdc, 1147, 887);
+        if pxl == 1716831 {
+            return (true, true);
+        } else if pxl == 1717347 {
+            return (true, false);
+        }
+        (false, false)
     }
 
     fn skill_cleave() -> VIRTUAL_KEY {
@@ -171,7 +190,7 @@ pub mod destroyer {
     unsafe fn skill_mighty_cleave_available(hdc: HDC) -> bool {
         let pxl_rmb = GetPixel(hdc, 1141, 887);
         let pxl_g = GetPixel(hdc, 1276, 888);
-        pxl_rmb == 1251356 || pxl_g == 6843246
+        pxl_rmb == 1251356 || pxl_rmb == 1250840 || pxl_g == 6843246 || pxl_g == 7500149
     }
 
     unsafe fn skill_smash_available(hdc: HDC) -> bool {
