@@ -3,7 +3,7 @@ pub mod destroyer {
     use std::time;
 
     use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-    use windows::Win32::UI::Input::KeyboardAndMouse::{VIRTUAL_KEY, VK_0, VK_3, VK_E, VK_T, VK_X};
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY, VK_0, VK_3, VK_C, VK_E, VK_Q, VK_T, VK_X};
 
     use crate::{general_is_soul_triggered, send_key};
     use crate::general::general::general_talisman;
@@ -11,6 +11,28 @@ pub mod destroyer {
     static mut USE_FURY_AFTER_NEXT_MC: bool = false;
 
     pub unsafe fn rotation(hdc: HDC) {
+        // c iframe
+        if GetAsyncKeyState(0x43) < 0 {
+            loop {
+                send_key(skill_searing_strike(), true);
+                send_key(skill_searing_strike(), false);
+                if skill_searing_strike_unavailable(hdc) {
+                    break;
+                }
+            }
+        }
+
+        // q iframe
+        if GetAsyncKeyState(0x51) < 0 {
+            loop {
+                send_key(skill_typhoon(), true);
+                send_key(skill_typhoon(), false);
+                if skill_typhoon_unavailable(hdc) {
+                    break;
+                }
+            }
+        }
+
         let fury_available = skill_fury_available(hdc);
         let judgment_available = skill_judgment_available(hdc);
 
@@ -90,7 +112,7 @@ pub mod destroyer {
                     }
                 }
 
-                sleep(time::Duration::from_millis(140));
+                sleep(time::Duration::from_millis(130));
                 self::USE_FURY_AFTER_NEXT_MC = false
             } else {
                 if skill_smash_available(hdc) {
@@ -114,7 +136,7 @@ pub mod destroyer {
                         }
                     }
 
-                    sleep(time::Duration::from_millis(140));
+                    sleep(time::Duration::from_millis(120));
                 }
             }
         }
@@ -215,5 +237,21 @@ pub mod destroyer {
 
     fn skill_wrath() -> VIRTUAL_KEY {
         VK_0
+    }
+
+    unsafe fn skill_searing_strike_unavailable(hdc: HDC) -> bool {
+        GetPixel(hdc, 987, 950) == 2042418
+    }
+
+    fn skill_searing_strike() -> VIRTUAL_KEY {
+        VK_C
+    }
+
+    unsafe fn skill_typhoon_unavailable(hdc: HDC) -> bool {
+        GetPixel(hdc, 695, 887) == 3287635
+    }
+
+    fn skill_typhoon() -> VIRTUAL_KEY {
+        VK_Q
     }
 }

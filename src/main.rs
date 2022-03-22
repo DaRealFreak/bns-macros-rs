@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use std::process::exit;
 use std::thread::sleep;
 use std::time;
@@ -7,11 +8,11 @@ use winapi::um::winuser::GetCursorPos;
 use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
 
-use crate::destroyer_earth::destroyer::rotation;
+use crate::classes::destroyer_earth::destroyer::rotation;
 use crate::general::general::general_is_soul_triggered;
 
-mod destroyer_earth;
 mod general;
+mod classes;
 
 #[cfg(windows)]
 fn send_key(key: VIRTUAL_KEY, down: bool) {
@@ -43,7 +44,7 @@ fn main() {
         let hdc = windows::Win32::Graphics::Gdi::GetDC(hwnd);
 
         loop {
-            sleep(time::Duration::from_millis(2));
+            //sleep(time::Duration::from_millis(2));
 
             // f1
             if GetAsyncKeyState(0x70) != 0 {
