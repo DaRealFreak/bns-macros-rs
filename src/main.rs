@@ -1,4 +1,5 @@
 #![windows_subsystem = "windows"]
+
 use std::process::exit;
 use std::thread::sleep;
 use std::time;
@@ -8,7 +9,9 @@ use winapi::um::winuser::GetCursorPos;
 use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
 
-use crate::classes::destroyer_earth::destroyer::rotation;
+use crate::classes::{BnsMacro, Macro};
+use crate::classes::blademaster::BladeMaster;
+use crate::classes::destroyer::Destroyer;
 use crate::general::general::general_is_soul_triggered;
 
 mod general;
@@ -39,13 +42,14 @@ fn send_key(key: VIRTUAL_KEY, down: bool) {
 }
 
 fn main() {
+    let mut current_class = Macro { loaded_macro: Box::new(BladeMaster {}) };
+    current_class = Macro { loaded_macro: Box::new(Destroyer { use_fury_after_next_mc: false }) };
+
     unsafe {
         let hwnd = windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow();
         let hdc = windows::Win32::Graphics::Gdi::GetDC(hwnd);
 
         loop {
-            //sleep(time::Duration::from_millis(2));
-
             // f1
             if GetAsyncKeyState(0x70) != 0 {
                 let mut point = POINT::default();
@@ -65,7 +69,7 @@ fn main() {
 
             // f23
             if GetAsyncKeyState(0x86) != 0 {
-                rotation(hdc);
+                current_class.loaded_macro.rotation(hdc, true);
             }
         }
     }
