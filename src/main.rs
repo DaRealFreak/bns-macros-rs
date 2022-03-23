@@ -4,10 +4,10 @@ use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
-use winapi::shared::windef::POINT;
-use winapi::um::winuser::GetCursorPos;
+use windows::Win32::Foundation::POINT;
 use windows::Win32::Graphics::Gdi::GetPixel;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY};
+use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
 use crate::classes::{BnsMacro, BnsMacroCreation, Macro};
 use crate::classes::blademaster::BladeMaster;
@@ -19,25 +19,21 @@ mod classes;
 
 #[cfg(windows)]
 fn send_key(key: VIRTUAL_KEY, down: bool) {
-    use winapi::um::winuser::{
-        INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput,
-    };
-
-    let flags = if down { 0 } else { KEYEVENTF_KEYUP };
-    let mut input = INPUT {
-        type_: INPUT_KEYBOARD,
-        u: unsafe {
-            std::mem::transmute_copy(&KEYBDINPUT {
-                wVk: key.0,
+    let flags = if down { KEYBD_EVENT_FLAGS(0) } else { KEYEVENTF_KEYUP };
+    let input = INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT {
+                wVk: key,
                 wScan: 0,
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: 0,
-            })
+            }
         },
     };
     unsafe {
-        SendInput(1, &mut input, std::mem::size_of::<INPUT>() as i32);
+        SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
     }
 }
 
