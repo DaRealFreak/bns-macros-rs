@@ -9,7 +9,7 @@ use winapi::um::winuser::GetCursorPos;
 use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VIRTUAL_KEY};
 
-use crate::classes::{BnsMacro, Macro};
+use crate::classes::{BnsMacro, BnsMacroCreation, Macro};
 use crate::classes::blademaster::BladeMaster;
 use crate::classes::destroyer::Destroyer;
 use crate::general::general::general_is_soul_triggered;
@@ -42,8 +42,8 @@ fn send_key(key: VIRTUAL_KEY, down: bool) {
 }
 
 fn main() {
-    let mut current_class = Macro { loaded_macro: Box::new(BladeMaster {}) };
-    current_class = Macro { loaded_macro: Box::new(Destroyer { use_fury_after_next_mc: false }) };
+    let mut current_class = Macro { loaded_macro: Box::new(BladeMaster::new()) };
+    current_class = Macro { loaded_macro: Box::new(Destroyer::new()) };
 
     unsafe {
         let hwnd = windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow();

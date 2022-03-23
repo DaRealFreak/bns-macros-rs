@@ -5,7 +5,7 @@ use windows::Win32::Graphics::Gdi::HDC;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 
 use crate::{general_is_soul_triggered, send_key};
-use crate::classes::BnsMacro;
+use crate::classes::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer::availability::Availability;
 use crate::classes::destroyer::skills::Skills;
 use crate::general::general::general_talisman;
@@ -16,6 +16,12 @@ mod skills;
 
 pub(crate) struct Destroyer {
     pub(crate) use_fury_after_next_mc: bool,
+}
+
+impl BnsMacroCreation for Destroyer {
+    fn new() -> Self {
+        Destroyer { use_fury_after_next_mc: false }
+    }
 }
 
 impl BnsMacro for Destroyer {
