@@ -4,11 +4,11 @@ use std::time;
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 
-use crate::{general_is_soul_triggered, send_key};
 use crate::classes::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer::availability::Availability;
 use crate::classes::destroyer::skills::Skills;
-use crate::general::general::general_talisman;
+use crate::general::{general_is_soul_triggered, general_talisman};
+use crate::inputs::send_key;
 
 mod availability;
 mod skills;
