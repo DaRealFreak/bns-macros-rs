@@ -1,31 +1,5 @@
-[package]
-name = "bns-macros"
-version = "0.1.0"
-edition = "2021"
-build = "build.rs"
-
-[profile.dev]
-opt-level = 0
-
-[profile.release]
-opt-level = 3
-
-[target.'cfg(target_os="windows")'.build-dependencies]
-winres = "^0.1"
-
-[package.metadata.winres]
-OriginalFilename = "bns-macro.exe"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]
-chrono = "0.4.19"
-rust-ini = "0.18"
-
-[dependencies.windows]
-version = "0.34.0"
-features = [
-    "Win32_Graphics_Gdi",
-    "Win32_Foundation",
-    "Win32_UI_Input_KeyboardAndMouse",
-    "Win32_UI_WindowsAndMessaging"
+[workspace]
+members = [
+    "bots/poharan/",
+    "macros"
 ]

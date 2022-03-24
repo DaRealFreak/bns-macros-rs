@@ -9,14 +9,12 @@ use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
-use crate::bots::poharan::{ChaosSupplyChain, Poharan};
 use crate::classes::{BnsMacro, BnsMacroCreation, Macro, MacroDetection};
 use crate::classes::blademaster::BladeMaster;
 use crate::classes::destroyer::Destroyer;
 
 mod general;
 mod classes;
-mod bots;
 mod inputs;
 
 fn main() {
@@ -37,12 +35,6 @@ fn main() {
                 println!("[{}] x: {}, y: {}, pxl: {}, hex: 0x{:02X}{:02X}{:02X}",
                          Local::now().to_rfc2822(), point.x, point.y, pxl, red, green, blue);
                 sleep(time::Duration::from_millis(50));
-            }
-
-            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x62) < 0 {
-                println!("[{}] loading poharan bot", Local::now().to_rfc2822());
-                let mut poh = Poharan::new();
-                poh.start();
             }
 
             // ctrl + f12 for exit
