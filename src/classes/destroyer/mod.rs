@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use windows::Win32::Graphics::Gdi::HDC;
+use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 
 use crate::{general_is_soul_triggered, send_key};
@@ -13,9 +13,9 @@ use crate::general::general::general_talisman;
 mod availability;
 mod skills;
 
-
+#[derive(Copy, Clone)]
 pub(crate) struct Destroyer {
-    pub(crate) use_fury_after_next_mc: bool,
+    use_fury_after_next_mc: bool,
 }
 
 impl BnsMacroCreation for Destroyer {
@@ -25,6 +25,14 @@ impl BnsMacroCreation for Destroyer {
 }
 
 impl BnsMacro for Destroyer {
+    fn name(&self) -> String {
+        "Earth Destroyer".parse().unwrap()
+    }
+
+    unsafe fn class_active(&self, hdc: HDC) -> bool {
+        GetPixel(hdc, 823, 902) == 12886080
+    }
+
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
         // c iframe
         if GetAsyncKeyState(0x43) < 0 {
@@ -195,5 +203,9 @@ impl BnsMacro for Destroyer {
         send_key(Destroyer::skill_wrath(), true);
         send_key(Destroyer::skill_wrath(), false);
         sleep(time::Duration::from_millis(2));
+    }
+
+    fn box_clone(&self) -> Box<dyn BnsMacro> {
+        Box::new((*self).clone())
     }
 }

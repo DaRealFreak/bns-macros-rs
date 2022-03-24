@@ -9,7 +9,7 @@ use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY};
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
-use crate::classes::{BnsMacro, BnsMacroCreation, Macro};
+use crate::classes::{BnsMacro, BnsMacroCreation, Macro, MacroDetection};
 use crate::classes::blademaster::BladeMaster;
 use crate::classes::destroyer::Destroyer;
 use crate::general::general::general_is_soul_triggered;
@@ -38,16 +38,14 @@ fn send_key(key: VIRTUAL_KEY, down: bool) {
 }
 
 fn main() {
-    let mut current_class = Macro { loaded_macro: Box::new(BladeMaster::new()) };
-    current_class = Macro { loaded_macro: Box::new(Destroyer::new()) };
-
     unsafe {
         let hwnd = windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow();
         let hdc = windows::Win32::Graphics::Gdi::GetDC(hwnd);
+        let mut current_class = Macro::new(hdc);
 
         loop {
             // f1
-            if GetAsyncKeyState(0x70) != 0 {
+            if GetAsyncKeyState(0x70) < 0 {
                 let mut point = POINT::default();
                 GetCursorPos(&mut point);
                 let pxl = GetPixel(hdc, point.x, point.y);
@@ -55,17 +53,28 @@ fn main() {
                 let green = (pxl >> 8) & 0xff;
                 let blue = (pxl >> 16) & 0xff;
                 println!("x: {}, y: {}, pxl: {}, hex: 0x{:x}{:x}{:x}", point.x, point.y, pxl, red, green, blue);
-                sleep(time::Duration::from_secs(1));
+                sleep(time::Duration::from_millis(50));
             }
 
-            // f4
-            if GetAsyncKeyState(0x73) != 0 {
+            // ctrl + f12 for exit
+            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x7B) != 0 {
                 exit(0)
+            }
+
+            // ctrl + f5 for reloading the macro
+            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x74) < 0 {
+                current_class.detect(hdc);
+                sleep(time::Duration::from_secs(1));
             }
 
             // f23
             if GetAsyncKeyState(0x86) != 0 {
                 current_class.loaded_macro.rotation(hdc, true);
+            }
+
+            // f24
+            if GetAsyncKeyState(0x87) != 0 {
+                current_class.loaded_macro.rotation(hdc, false);
             }
         }
     }
