@@ -6,36 +6,18 @@ use std::time;
 use chrono::Local;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Graphics::Gdi::GetPixel;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY};
+use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
+use crate::bots::poharan::{ChaosSupplyChain, Poharan};
 use crate::classes::{BnsMacro, BnsMacroCreation, Macro, MacroDetection};
 use crate::classes::blademaster::BladeMaster;
 use crate::classes::destroyer::Destroyer;
-use crate::general::general::general_is_soul_triggered;
 
 mod general;
 mod classes;
-
-#[cfg(windows)]
-fn send_key(key: VIRTUAL_KEY, down: bool) {
-    let flags = if down { KEYBD_EVENT_FLAGS(0) } else { KEYEVENTF_KEYUP };
-    let input = INPUT {
-        r#type: INPUT_KEYBOARD,
-        Anonymous: INPUT_0 {
-            ki: KEYBDINPUT {
-                wVk: key,
-                wScan: 0,
-                dwFlags: flags,
-                time: 0,
-                dwExtraInfo: 0,
-            }
-        },
-    };
-    unsafe {
-        SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
-    }
-}
+mod bots;
+mod inputs;
 
 fn main() {
     unsafe {
@@ -55,6 +37,12 @@ fn main() {
                 println!("[{}] x: {}, y: {}, pxl: {}, hex: 0x{:02X}{:02X}{:02X}",
                          Local::now().to_rfc2822(), point.x, point.y, pxl, red, green, blue);
                 sleep(time::Duration::from_millis(50));
+            }
+
+            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x62) < 0 {
+                println!("[{}] loading poharan bot", Local::now().to_rfc2822());
+                let mut poh = Poharan::new();
+                poh.start();
             }
 
             // ctrl + f12 for exit
