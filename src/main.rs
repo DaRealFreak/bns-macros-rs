@@ -1,9 +1,9 @@
-#![windows_subsystem = "windows"]
-
+//#![windows_subsystem = "windows"]
 use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
+use chrono::Local;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Graphics::Gdi::GetPixel;
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, SendInput, VIRTUAL_KEY};
@@ -52,12 +52,14 @@ fn main() {
                 let red = pxl & 0xFF;
                 let green = (pxl >> 8) & 0xff;
                 let blue = (pxl >> 16) & 0xff;
-                println!("x: {}, y: {}, pxl: {}, hex: 0x{:x}{:x}{:x}", point.x, point.y, pxl, red, green, blue);
+                println!("[{}] x: {}, y: {}, pxl: {}, hex: 0x{:02X}{:02X}{:02X}",
+                         Local::now().to_rfc2822(), point.x, point.y, pxl, red, green, blue);
                 sleep(time::Duration::from_millis(50));
             }
 
             // ctrl + f12 for exit
             if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x7B) != 0 {
+                println!("[{}] exiting macro", Local::now().to_rfc2822());
                 exit(0)
             }
 

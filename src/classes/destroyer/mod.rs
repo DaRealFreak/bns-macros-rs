@@ -124,7 +124,7 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            if dps && self.use_fury_after_next_mc && Destroyer::skill_fury_available(hdc) {
+            if dps && self.use_fury_after_next_mc {
                 loop {
                     send_key(Destroyer::skill_fury(), true);
                     send_key(Destroyer::skill_fury(), false);

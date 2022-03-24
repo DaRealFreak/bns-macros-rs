@@ -1,5 +1,8 @@
 use std::fmt::{Display, Formatter};
+
+use chrono::Local;
 use windows::Win32::Graphics::Gdi::HDC;
+
 use crate::{BladeMaster, Destroyer};
 
 pub(crate) mod destroyer;
@@ -43,7 +46,7 @@ pub(crate) trait MacroDetection {
 
 impl MacroDetection for Macro {
     unsafe fn new(hdc: HDC) -> Self {
-        let mut m = Macro{loaded_macro: Box::new(Destroyer::new())};
+        let mut m = Macro { loaded_macro: Box::new(Destroyer::new()) };
         m.detect(hdc);
         m
     }
@@ -56,9 +59,8 @@ impl MacroDetection for Macro {
 
         // check every macro if their respective class is currently active
         for class in implemented_classes.iter() {
-
             if class.class_active(hdc) {
-                println!("loaded class: {}", class.clone());
+                println!("[{}] loaded class: {}", Local::now().to_rfc2822(), class.clone());
                 self.loaded_macro = class.box_clone();
                 return;
             }
