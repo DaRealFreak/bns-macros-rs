@@ -43,8 +43,8 @@ fn main() {
                 exit(0)
             }
 
-            // ctrl + f5 for reloading the macro
-            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x74) < 0 {
+            // ctrl + f4 for reloading the macro
+            if GetAsyncKeyState(0x11) < 0 && GetAsyncKeyState(0x73) < 0 {
                 current_class.detect(hdc);
                 sleep(time::Duration::from_secs(1));
             }
