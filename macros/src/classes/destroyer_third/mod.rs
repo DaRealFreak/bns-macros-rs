@@ -2,11 +2,12 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_1, VK_3, VK_T, VK_X};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_1, VK_3, VK_E, VK_T, VK_X};
 
 use crate::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer_third::availability::Availability;
 use crate::classes::destroyer_third::skills::Skills;
+use crate::general::general_is_soul_triggered;
 use crate::inputs::send_key;
 
 mod availability;
@@ -31,6 +32,12 @@ impl BnsMacro for DestroyerThird {
     }
 
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
+        if dps && DestroyerThird::skill_ironclad_available(hdc) && general_is_soul_triggered(hdc) {
+            send_key(VK_E, true);
+            send_key(VK_E, false);
+            return;
+        }
+
         if DestroyerThird::skill_reaver_available(hdc) {
             loop {
                 send_key(DestroyerThird::skill_reaver(), true);

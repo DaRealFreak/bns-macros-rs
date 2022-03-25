@@ -6,6 +6,7 @@ pub(crate) trait Availability {
     unsafe fn skill_reaver_available(hdc: HDC) -> bool;
     unsafe fn skill_reaver_greyed_out(hdc: HDC) -> bool;
     unsafe fn skill_reaver_unavailable(hdc: HDC) -> bool;
+    unsafe fn skill_ironclad_available(hdc: HDC) -> bool;
     unsafe fn skill_brightforge_available(hdc: HDC) -> bool;
     unsafe fn skill_galvanize_available(hdc: HDC) -> bool;
     unsafe fn skill_sledgehammer_available(hdc: HDC) -> bool;
@@ -25,6 +26,10 @@ impl Availability for DestroyerThird {
     // reaver is off cd, but greyed out
     unsafe fn skill_reaver_unavailable(hdc: HDC) -> bool {
         GetPixel(hdc, 1277, 888) == 6908265
+    }
+
+    unsafe fn skill_ironclad_available(hdc: HDC) -> bool {
+        GetPixel(hdc, 742, 887) == 1522771
     }
 
     unsafe fn skill_brightforge_available(hdc: HDC) -> bool {
