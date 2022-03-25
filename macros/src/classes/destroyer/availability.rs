@@ -1,6 +1,6 @@
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 
-use crate::Destroyer;
+use crate::classes::destroyer::Destroyer;
 
 pub(crate) trait Availability {
     unsafe fn skill_cleave_available(hdc: HDC) -> (bool, bool);

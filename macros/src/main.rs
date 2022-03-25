@@ -10,8 +10,6 @@ use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
 use crate::classes::{BnsMacro, BnsMacroCreation, Macro, MacroDetection};
-use crate::classes::blademaster::BladeMaster;
-use crate::classes::destroyer::Destroyer;
 
 mod general;
 mod classes;

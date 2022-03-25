@@ -16,7 +16,7 @@ impl BnsMacro for BladeMaster {
         "Fire Blade Master".parse().unwrap()
     }
 
-    unsafe fn class_active(&self, hdc: HDC) -> bool {
+    unsafe fn class_active(&self, _hdc: HDC) -> bool {
         false
     }
 

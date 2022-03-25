@@ -1,6 +1,6 @@
 use windows::Win32::UI::Input::KeyboardAndMouse::{VIRTUAL_KEY, VK_0, VK_3, VK_C, VK_E, VK_Q, VK_T, VK_X};
 
-use crate::Destroyer;
+use crate::classes::destroyer::Destroyer;
 
 pub(crate) trait Skills {
     fn skill_cleave() -> VIRTUAL_KEY;
