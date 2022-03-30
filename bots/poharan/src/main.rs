@@ -8,7 +8,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVE
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::move_mouse;
-use crate::game::find_window;
+use crate::game::find_window_hwnds_by_name;
 
 use crate::lobby::Lobby;
 
@@ -42,7 +42,7 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
-        find_window();
+        find_window_hwnds_by_name("Blade & Soul");
 
         return true;
 
