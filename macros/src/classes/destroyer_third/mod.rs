@@ -3,6 +3,7 @@ use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_1, VK_3, VK_E, VK_T, VK_X};
+use bns_utility::send_key;
 
 use crate::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer_third::availability::Availability;

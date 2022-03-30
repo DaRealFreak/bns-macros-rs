@@ -3,6 +3,7 @@ use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
+use bns_utility::send_key;
 
 use crate::classes::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer::availability::Availability;

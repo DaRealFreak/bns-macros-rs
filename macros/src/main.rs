@@ -13,7 +13,6 @@ use crate::classes::{BnsMacro, BnsMacroCreation, Macro, MacroDetection};
 
 mod general;
 mod classes;
-mod inputs;
 
 fn main() {
     unsafe {

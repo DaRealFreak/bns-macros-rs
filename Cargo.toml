@@ -1,6 +1,7 @@
 [workspace]
 members = [
-    "bots/poharan/",
+    "utility",
+    "bots/poharan",
     "macros"
 ]
 

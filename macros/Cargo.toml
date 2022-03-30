@@ -14,6 +14,7 @@ OriginalFilename = "bns-macro.exe"
 [dependencies]
 chrono = "0.4.19"
 rust-ini = "0.18"
+bns-utility = {path = "../utility"}
 
 [dependencies.windows]
 version = "0.34.0"

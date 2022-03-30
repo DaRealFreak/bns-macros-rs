@@ -20,9 +20,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "bns-bots"
+name = "bns-macros"
 version = "0.1.0"
 dependencies = [
+ "bns-utility",
  "chrono",
  "rust-ini",
  "windows",
@@ -30,13 +31,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "bns-macros"
+name = "bns-poharan"
 version = "0.1.0"
 dependencies = [
+ "bns-utility",
  "chrono",
  "rust-ini",
  "windows",
  "winres",
+]
+
+[[package]]
+name = "bns-utility"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "windows",
 ]
 
 [[package]]

@@ -3,55 +3,72 @@ use std::thread::sleep;
 use std::time;
 
 use chrono::Local;
+use ini::Ini;
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE};
+use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
+
+use bns_utility::{get_pixel, move_mouse};
+
+use crate::lobby::Lobby;
 
 mod configuration;
+mod lobby;
 
 pub(crate) struct Poharan {
     run_count: u16,
     successful_runs: Vec<u16>,
     failed_runs: Vec<u16>,
     run_start_timestamp: Option<std::time::Instant>,
+    settings: Ini,
 }
 
-pub(crate) trait ChaosSupplyChain {
-    fn new() -> Poharan;
-    fn start(&mut self) -> bool;
-}
-
-trait ChaosSupplyChainBot {
-    fn enter_lobby(&mut self) -> bool;
-}
-
-impl ChaosSupplyChain for Poharan {
+impl Poharan {
     fn new() -> Poharan {
         if !(Path::new("configuration/poharan.ini").is_file()) {
             configuration::create_ini();
         }
+
+        let test = Ini::load_from_file("configuration/poharan.ini").unwrap();
 
         Poharan {
             run_count: 0,
             successful_runs: vec![],
             failed_runs: vec![],
             run_start_timestamp: None,
+            settings: test,
         }
     }
 
-    fn start(&mut self) -> bool {
+    unsafe fn start(&mut self) -> bool {
         loop {
             self.enter_lobby();
         }
     }
-}
 
-impl ChaosSupplyChainBot for Poharan {
-    fn enter_lobby(&mut self) -> bool {
-        println!("[{}] entering lobby", Local::now().to_rfc2822());
-        sleep(time::Duration::from_secs(1));
+    unsafe fn enter_lobby(&mut self) -> bool {
+        println!("[{}] entering Lobby", Local::now().to_rfc2822());
+        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+
+        let position_ready = interface_settings.get("PositionReady").unwrap().split(",");
+        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        println!("x: {} y: {}", res[0], res[1]);
+
+        while !self.is_player_ready() {
+            SetCursorPos(res[0], res[1]);
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+        }
+
+        println!("{}", self.is_player_ready());
+        sleep(time::Duration::from_secs(10));
         return true
     }
 }
 
 fn main() {
     let mut test = Poharan::new();
-    test.start();
+    unsafe {
+        test.start();
+    }
 }
