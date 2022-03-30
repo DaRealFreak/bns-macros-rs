@@ -1,7 +1,10 @@
+use windows::Win32::Graphics::Gdi::{GetDC, GetPixel};
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, MOUSE_EVENT_FLAGS, MOUSEINPUT, SendInput, VIRTUAL_KEY};
+
 pub unsafe fn get_pixel(x: i32, y: i32) -> String {
-    let hwnd = windows::Win32::UI::Input::KeyboardAndMouse::GetActiveWindow();
-    let hdc = windows::Win32::Graphics::Gdi::GetDC(hwnd);
-    let pxl = windows::Win32::Graphics::Gdi::GetPixel(hdc, x, y);
+    let hwnd = GetActiveWindow();
+    let hdc = GetDC(hwnd);
+    let pxl = GetPixel(hdc, x, y);
     let red = pxl & 0xFF;
     let green = (pxl >> 8) & 0xff;
     let blue = (pxl >> 16) & 0xff;
@@ -9,11 +12,11 @@ pub unsafe fn get_pixel(x: i32, y: i32) -> String {
     format!("0x{:02X}{:02X}{:02X}", red, green, blue)
 }
 
-pub unsafe fn move_mouse(x: i32, y: i32, flags: windows::Win32::UI::Input::KeyboardAndMouse::MOUSE_EVENT_FLAGS) {
-    let input = windows::Win32::UI::Input::KeyboardAndMouse::INPUT {
-        r#type: windows::Win32::UI::Input::KeyboardAndMouse::INPUT_MOUSE,
-        Anonymous: windows::Win32::UI::Input::KeyboardAndMouse::INPUT_0 {
-            mi: windows::Win32::UI::Input::KeyboardAndMouse::MOUSEINPUT {
+pub unsafe fn move_mouse(x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) {
+    let input = INPUT {
+        r#type: INPUT_MOUSE,
+        Anonymous: INPUT_0 {
+            mi: MOUSEINPUT {
                 dx: x,
                 dy: y,
                 mouseData: 0,
@@ -23,15 +26,15 @@ pub unsafe fn move_mouse(x: i32, y: i32, flags: windows::Win32::UI::Input::Keybo
             },
         },
     };
-    windows::Win32::UI::Input::KeyboardAndMouse::SendInput(&[input], std::mem::size_of::<windows::Win32::UI::Input::KeyboardAndMouse::INPUT>() as i32);
+    SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
 }
 
-pub unsafe fn send_key(key: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY, down: bool) {
-    let flags = if down { windows::Win32::UI::Input::KeyboardAndMouse::KEYBD_EVENT_FLAGS(0) } else { windows::Win32::UI::Input::KeyboardAndMouse::KEYEVENTF_KEYUP };
-    let input = windows::Win32::UI::Input::KeyboardAndMouse::INPUT {
-        r#type: windows::Win32::UI::Input::KeyboardAndMouse::INPUT_KEYBOARD,
-        Anonymous: windows::Win32::UI::Input::KeyboardAndMouse::INPUT_0 {
-            ki: windows::Win32::UI::Input::KeyboardAndMouse::KEYBDINPUT {
+pub unsafe fn send_key(key: VIRTUAL_KEY, down: bool) {
+    let flags = if down { KEYBD_EVENT_FLAGS(0) } else { KEYEVENTF_KEYUP };
+    let input = INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT {
                 wVk: key,
                 wScan: 0,
                 dwFlags: flags,
@@ -40,5 +43,5 @@ pub unsafe fn send_key(key: windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL
             }
         },
     };
-    windows::Win32::UI::Input::KeyboardAndMouse::SendInput(&[input], std::mem::size_of::<windows::Win32::UI::Input::KeyboardAndMouse::INPUT>() as i32);
+    SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
 }

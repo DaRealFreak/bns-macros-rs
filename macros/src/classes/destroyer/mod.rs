@@ -9,7 +9,6 @@ use crate::classes::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer::availability::Availability;
 use crate::classes::destroyer::skills::Skills;
 use crate::general::{general_is_soul_triggered, general_talisman};
-use crate::inputs::send_key;
 
 mod availability;
 mod skills;

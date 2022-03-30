@@ -4,15 +4,17 @@ use std::time;
 
 use chrono::Local;
 use ini::Ini;
-use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE};
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
-use bns_utility::{get_pixel, move_mouse};
+use bns_utility::move_mouse;
+use crate::game::find_window;
 
 use crate::lobby::Lobby;
 
 mod configuration;
 mod lobby;
+mod game;
 
 pub(crate) struct Poharan {
     run_count: u16,
@@ -40,9 +42,15 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
+        find_window();
+
+        return true;
+
+        /*
         loop {
             self.enter_lobby();
         }
+         */
     }
 
     unsafe fn enter_lobby(&mut self) -> bool {

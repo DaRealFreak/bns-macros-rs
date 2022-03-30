@@ -9,7 +9,6 @@ use crate::{BnsMacro, BnsMacroCreation};
 use crate::classes::destroyer_third::availability::Availability;
 use crate::classes::destroyer_third::skills::Skills;
 use crate::general::general_is_soul_triggered;
-use crate::inputs::send_key;
 
 mod availability;
 mod skills;
