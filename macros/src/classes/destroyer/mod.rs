@@ -57,55 +57,6 @@ impl BnsMacro for Destroyer {
         }
 
         let fury_available = Destroyer::skill_fury_available(hdc);
-        let judgment_available = Destroyer::skill_judgment_available(hdc);
-
-        // talisman sync with soul
-        if general_is_soul_triggered(hdc) {
-            send_key(general_talisman(), true);
-            send_key(general_talisman(), false);
-        }
-
-        // enter fury stance
-        if dps && fury_available && judgment_available {
-            if Destroyer::skill_emberstomp_available(hdc) {
-                loop {
-                    send_key(Destroyer::skill_emberstomp(), true);
-                    send_key(Destroyer::skill_emberstomp(), false);
-
-                    if !Destroyer::skill_emberstomp_available(hdc) {
-                        break;
-                    }
-                }
-
-                // sleep to show mighty cleave
-                sleep(time::Duration::from_millis(50));
-
-                // use mighty cleave after emberstomp
-                loop {
-                    send_key(Destroyer::skill_wrath(), true);
-                    send_key(Destroyer::skill_wrath(), false);
-                    sleep(time::Duration::from_millis(10));
-
-                    if !Destroyer::skill_mighty_cleave_available(hdc) {
-                        break;
-                    }
-                }
-            }
-
-            while Destroyer::skill_fury_available(hdc) {
-                send_key(Destroyer::skill_fury(), true);
-                send_key(Destroyer::skill_fury(), false);
-                sleep(time::Duration::from_millis(5));
-            }
-
-            // sleep after fury usage for animation cancel
-            sleep(time::Duration::from_millis(140));
-        } else if !fury_available && judgment_available {
-            send_key(Destroyer::skill_cleave(), true);
-            send_key(Destroyer::skill_cleave(), false);
-            sleep(time::Duration::from_millis(5));
-            return;
-        }
 
         // change flag to use fury after next mighty cleave again
         if !self.use_fury_after_next_mc && fury_available {
@@ -191,13 +142,63 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            sleep(time::Duration::from_millis(95));
+            sleep(time::Duration::from_millis(90));
 
             // sleep 170ms during SB due to awk mc having 18s cd instead of 24s
             // on 40 ms the script would try to anicancel cleave causing a delay after cleave before mc
             if in_soulburn {
                 sleep(time::Duration::from_millis(80));
             }
+        }
+
+        let judgment_available = Destroyer::skill_judgment_available(hdc);
+
+        // talisman sync with soul
+        if general_is_soul_triggered(hdc) {
+            send_key(general_talisman(), true);
+            send_key(general_talisman(), false);
+        }
+
+        // enter fury stance
+        if dps && fury_available && judgment_available {
+            if Destroyer::skill_emberstomp_available(hdc) {
+                loop {
+                    send_key(Destroyer::skill_emberstomp(), true);
+                    send_key(Destroyer::skill_emberstomp(), false);
+
+                    if !Destroyer::skill_emberstomp_available(hdc) {
+                        break;
+                    }
+                }
+
+                // sleep to show mighty cleave
+                sleep(time::Duration::from_millis(50));
+
+                // use mighty cleave after emberstomp
+                loop {
+                    send_key(Destroyer::skill_wrath(), true);
+                    send_key(Destroyer::skill_wrath(), false);
+                    sleep(time::Duration::from_millis(10));
+
+                    if !Destroyer::skill_mighty_cleave_available(hdc) {
+                        break;
+                    }
+                }
+            }
+
+            while Destroyer::skill_fury_available(hdc) {
+                send_key(Destroyer::skill_fury(), true);
+                send_key(Destroyer::skill_fury(), false);
+                sleep(time::Duration::from_millis(5));
+            }
+
+            // sleep after fury usage for animation cancel
+            sleep(time::Duration::from_millis(140));
+        } else if !fury_available && judgment_available {
+            send_key(Destroyer::skill_cleave(), true);
+            send_key(Destroyer::skill_cleave(), false);
+            sleep(time::Duration::from_millis(5));
+            return;
         }
 
         send_key(Destroyer::skill_wrath(), true);
