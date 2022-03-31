@@ -5,7 +5,7 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
-use windows::Win32::UI::WindowsAndMessaging::{SetCursorPos, SetForegroundWindow};
+use windows::Win32::UI::WindowsAndMessaging::{SetCursorPos};
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
 
 use bns_utility::move_mouse;
@@ -42,7 +42,11 @@ impl Poharan {
 
     unsafe fn start(&mut self) -> bool {
         let game_hwnds = find_window_hwnds_by_name_sorted_creation_time("Blade & Soul");
-        switch_to_hwnd(game_hwnds[game_hwnds.len()-1]);
+
+        for hwnd in game_hwnds {
+            println!("switching to hwnd: {}", hwnd.0);
+            switch_to_hwnd(hwnd);
+        }
 
         return true;
 
