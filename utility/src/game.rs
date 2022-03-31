@@ -67,10 +67,16 @@ pub unsafe fn switch_to_hwnd(hwnd: HWND) -> bool {
         // and bring our window handle to the top before detaching the thread again
         let window_thread_process_id = GetWindowThreadProcessId(GetForegroundWindow(), &mut 0);
         let current_thread_id = GetCurrentThreadId();
-        AttachThreadInput(window_thread_process_id, current_thread_id, true);
-        BringWindowToTop(hwnd);
-        ShowWindow(hwnd, SW_SHOW);
-        AttachThreadInput(window_thread_process_id, current_thread_id, false);
+
+        if window_thread_process_id != current_thread_id {
+            AttachThreadInput(window_thread_process_id, current_thread_id, true);
+            BringWindowToTop(hwnd);
+            ShowWindow(hwnd, SW_SHOW);
+            AttachThreadInput(window_thread_process_id, current_thread_id, false);
+        } else {
+            BringWindowToTop(hwnd);
+            ShowWindow(hwnd, SW_SHOW);
+        }
     }
 
     true
