@@ -5,9 +5,10 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
-use windows::Win32::UI::WindowsAndMessaging::{SetCursorPos};
-use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
+use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
+use bns_utility::activity::GameActivity;
+use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
 use bns_utility::move_mouse;
 
 use crate::lobby::Lobby;
@@ -16,6 +17,7 @@ mod configuration;
 mod lobby;
 
 pub(crate) struct Poharan {
+    activity: GameActivity,
     run_count: u16,
     successful_runs: Vec<u16>,
     failed_runs: Vec<u16>,
@@ -32,6 +34,7 @@ impl Poharan {
         let test = Ini::load_from_file("configuration/poharan.ini").unwrap();
 
         Poharan {
+            activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
             successful_runs: vec![],
             failed_runs: vec![],
@@ -41,20 +44,9 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
-        let game_hwnds = find_window_hwnds_by_name_sorted_creation_time("Blade & Soul");
-
-        for hwnd in game_hwnds {
-            println!("switching to hwnd: {}", hwnd.0);
-            switch_to_hwnd(hwnd);
-        }
-
-        return true;
-
-        /*
         loop {
             self.enter_lobby();
         }
-         */
     }
 
     unsafe fn enter_lobby(&mut self) -> bool {
@@ -67,6 +59,7 @@ impl Poharan {
         println!("x: {} y: {}", res[0], res[1]);
 
         while !self.is_player_ready() {
+            self.activity.check_game_activity();
             SetCursorPos(res[0], res[1]);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
