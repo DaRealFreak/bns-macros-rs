@@ -1,6 +1,6 @@
 use windows::Win32::Foundation::{BOOL, CloseHandle, FILETIME, HWND, LPARAM};
 use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId, GetProcessTimes, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
-use windows::Win32::UI::WindowsAndMessaging::{BringWindowToTop, EnumWindows, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, ShowWindow, SW_SHOW};
+use windows::Win32::UI::WindowsAndMessaging::{BringWindowToTop, EnumWindows, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, SetForegroundWindow, ShowWindow, SW_SHOW};
 
 static mut GAME_TITLE: Option<String> = None;
 static mut GAME_HWNDS: Vec<HWND> = vec![];
@@ -72,10 +72,12 @@ pub unsafe fn switch_to_hwnd(hwnd: HWND) -> bool {
             AttachThreadInput(window_thread_process_id, current_thread_id, true);
             BringWindowToTop(hwnd);
             ShowWindow(hwnd, SW_SHOW);
+            SetForegroundWindow(hwnd);
             AttachThreadInput(window_thread_process_id, current_thread_id, false);
         } else {
             BringWindowToTop(hwnd);
             ShowWindow(hwnd, SW_SHOW);
+            SetForegroundWindow(hwnd);
         }
     }
 
