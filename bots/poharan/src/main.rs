@@ -5,16 +5,15 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
-use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
+use windows::Win32::UI::WindowsAndMessaging::{SetCursorPos, SetForegroundWindow};
+use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
 
 use bns_utility::move_mouse;
-use crate::game::find_window_hwnds_by_name;
 
 use crate::lobby::Lobby;
 
 mod configuration;
 mod lobby;
-mod game;
 
 pub(crate) struct Poharan {
     run_count: u16,
@@ -42,7 +41,8 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
-        find_window_hwnds_by_name("Blade & Soul");
+        let game_hwnds = find_window_hwnds_by_name_sorted_creation_time("Blade & Soul");
+        switch_to_hwnd(game_hwnds[game_hwnds.len()-1]);
 
         return true;
 
