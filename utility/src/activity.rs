@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::process::exit;
 
 use chrono::Local;
@@ -10,6 +11,10 @@ pub struct GameActivity {
 impl GameActivity {
     pub fn new(title: &str) -> Self {
         GameActivity { window_title: title.to_string() }
+    }
+
+    pub fn title(&self) -> &str {
+        self.window_title.borrow()
     }
 
     pub unsafe fn check_game_activity(&self) {
