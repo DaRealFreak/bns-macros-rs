@@ -41,6 +41,8 @@ pub(crate) fn create_ini() {
         .set("DuoReady", "0x38D454")
         .set("PositionMemberInLobby", "965,120")
         .set("MemberInLobby", "0xD4B449")
+        .set("PositionHasInvite", "1265,964")
+        .set("HasInvite", "0xFFFFFF")
         .set("PositionIsReady", "940,1036")
         .set("IsReady", "0x898989,0xFFFFFF")
         .set("PositionInF8Lobby", "23,34")
