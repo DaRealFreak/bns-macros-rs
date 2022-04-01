@@ -4,12 +4,13 @@ use std::time;
 
 use chrono::Local;
 use ini::Ini;
-use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
-use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
+use windows::Win32::Foundation::HWND;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_Y;
+use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
+use bns_utility::send_key;
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
-use bns_utility::move_mouse;
 
 use crate::lobby::Lobby;
 
@@ -17,6 +18,7 @@ mod configuration;
 mod lobby;
 
 pub(crate) struct Poharan {
+    start_hwnd: HWND,
     activity: GameActivity,
     run_count: u16,
     successful_runs: Vec<u16>,
@@ -26,7 +28,7 @@ pub(crate) struct Poharan {
 }
 
 impl Poharan {
-    fn new() -> Poharan {
+    unsafe fn new() -> Poharan {
         if !(Path::new("configuration/poharan.ini").is_file()) {
             configuration::create_ini();
         }
@@ -34,6 +36,7 @@ impl Poharan {
         let test = Ini::load_from_file("configuration/poharan.ini").unwrap();
 
         Poharan {
+            start_hwnd: GetForegroundWindow(),
             activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
             successful_runs: vec![],
@@ -51,29 +54,47 @@ impl Poharan {
 
     unsafe fn enter_lobby(&mut self) -> bool {
         println!("[{}] entering Lobby", Local::now().to_rfc2822());
-        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
 
-        let position_ready = interface_settings.get("PositionReady").unwrap().split(",");
-        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        println!("x: {} y: {}", res[0], res[1]);
-
-        while !self.is_player_ready() {
-            self.activity.check_game_activity();
-            SetCursorPos(res[0], res[1]);
-            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
-            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+        switch_to_hwnd(self.start_hwnd);
+        self.open_chat();
+        for player in self.clients() {
+            self.invite_player(player);
         }
 
-        println!("{}", self.is_player_ready());
+        // let the other clients receive the invite first
+        sleep(time::Duration::from_millis(250));
+
+        for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
+            // ignore starting window hwnd since he handles the invites
+            if hwnd.0 == self.start_hwnd.0 {
+                continue
+            }
+
+            switch_to_hwnd(hwnd);
+
+            if self.has_player_invite() {
+                for _ in 0..4 {
+                    send_key(VK_Y, true);
+                    send_key(VK_Y, false);
+                    sleep(time::Duration::from_millis(20));
+                    send_key(VK_Y, true);
+                    send_key(VK_Y, false);
+                    sleep(time::Duration::from_millis(20));
+                }
+
+                self.ready_up();
+            }
+        }
+
+        switch_to_hwnd(self.start_hwnd);
         sleep(time::Duration::from_secs(10));
         return true
     }
 }
 
 fn main() {
-    let mut test = Poharan::new();
     unsafe {
+        let mut test = Poharan::new();
         test.start();
     }
 }
