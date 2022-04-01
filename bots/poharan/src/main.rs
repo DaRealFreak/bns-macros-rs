@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
@@ -58,6 +59,7 @@ impl Poharan {
         switch_to_hwnd(self.start_hwnd);
         self.open_chat();
         for player in self.clients() {
+            println!("[{}] inviting player \"{}\"", Local::now().to_rfc2822(), player);
             self.invite_player(player);
         }
 
@@ -70,9 +72,11 @@ impl Poharan {
                 continue
             }
 
+            println!("[{}] switching to window handle {}", Local::now().to_rfc2822(), hwnd.0);
             switch_to_hwnd(hwnd);
 
             if self.has_player_invite() {
+                println!("[{}] accepting lobby invite", Local::now().to_rfc2822());
                 for _ in 0..4 {
                     send_key(VK_Y, true);
                     send_key(VK_Y, false);
@@ -82,7 +86,13 @@ impl Poharan {
                     sleep(time::Duration::from_millis(20));
                 }
 
+                println!("[{}] readying up", Local::now().to_rfc2822());
                 self.ready_up();
+            }
+
+            if !self.is_player_ready() {
+                println!("[{}] player is not ready, exiting script", Local::now().to_rfc2822());
+                exit(-1);
             }
         }
 
