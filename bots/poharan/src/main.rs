@@ -9,10 +9,11 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_Y;
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
-use bns_utility::send_key;
+use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
 
+use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
 
 mod configuration;
@@ -49,12 +50,18 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
+        self.enter_lobby();
+
         loop {
-            self.enter_lobby();
+            if !self.move_to_dungeon() {
+                break;
+            }
         }
+
+        false
     }
 
-    unsafe fn enter_lobby(&mut self) -> bool {
+    unsafe fn enter_lobby(&mut self) {
         let configuration = self.settings.section(Some("Configuration")).unwrap();
 
         println!("[{}] entering Lobby", Local::now().to_rfc2822());
@@ -130,9 +137,10 @@ impl Poharan {
 
         println!("[{}] moving to dungeon", Local::now().to_rfc2822());
         self.enter_dungeon();
+    }
 
-        sleep(time::Duration::from_secs(10));
-        return true
+    unsafe fn move_to_dungeon(&self) -> bool {
+        false
     }
 }
 
