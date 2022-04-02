@@ -16,6 +16,12 @@ pub(crate) trait Lobby {
     unsafe fn is_player_ready(&self) -> bool;
     unsafe fn ready_up(&self);
     unsafe fn in_f8_lobby(&self) -> bool;
+    unsafe fn dungeon_selected(&self) -> bool;
+    unsafe fn select_dungeon(&self);
+    unsafe fn stage_selected(&self) -> bool;
+    unsafe fn select_stage(&self);
+    unsafe fn enter_dungeon_available(&self) -> bool;
+    unsafe fn enter_dungeon(&self);
 }
 
 impl Lobby for Poharan {
@@ -111,5 +117,115 @@ impl Lobby for Poharan {
         }
 
         false
+    }
+
+    unsafe fn dungeon_selected(&self) -> bool {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_ready = settings.get("PositionDungeonSelected").unwrap().split(",");
+        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        let pixel_color = get_pixel(res[0], res[1]);
+        let color_dungeon_selected = settings.get("DungeonSelected").unwrap().split(",");
+        for color in color_dungeon_selected {
+            if color.to_string() == pixel_color {
+                return true
+            }
+        }
+
+        false
+    }
+
+    unsafe fn select_dungeon(&self) {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_ready = settings.get("PositionClickDungeon").unwrap().split(",");
+        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        while !self.dungeon_selected() {
+            self.activity.check_game_activity();
+            SetCursorPos(res[0], res[1]);
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+        }
+    }
+
+    unsafe fn stage_selected(&self) -> bool {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+
+        let position_stage_selected = settings.get("PositionStageSelected").unwrap().split(",");
+        let coordinates_stage_selected: Vec<i32> = position_stage_selected.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        let pixel_color = get_pixel(coordinates_stage_selected[0], coordinates_stage_selected[1]);
+        let color_stage_selected = settings.get("StageSelected").unwrap().split(",");
+        for color in color_stage_selected {
+            if color.to_string() == pixel_color {
+                return true
+            }
+        }
+
+        false
+    }
+
+    unsafe fn select_stage(&self) {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let configuration = self.settings.section(Some("Configuration")).unwrap();
+
+        let position_stage_right = settings.get("PositionStageRightSide").unwrap().split(",");
+        let coordinates_stage_right: Vec<i32> = position_stage_right.map(|s| s.parse::<i32>().unwrap()).collect();
+        let position_stage_left = settings.get("PositionStageLeftSide").unwrap().split(",");
+        let coordinates_stage_left: Vec<i32> = position_stage_left.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        loop {
+            if self.stage_selected() {
+                break
+            }
+
+            self.activity.check_game_activity();
+            // press mouse down on the right side of the stage selection
+            SetCursorPos(coordinates_stage_right[0], coordinates_stage_right[1]);
+            sleep(time::Duration::from_millis(50));
+            move_mouse(0, 0, MOUSEEVENTF_LEFTDOWN);
+            sleep(time::Duration::from_millis(50));
+
+            // release mouse on the left side of the stage selection
+            SetCursorPos(coordinates_stage_left[0], coordinates_stage_left[1]);
+            sleep(time::Duration::from_millis(50));
+            move_mouse(0, 0, MOUSEEVENTF_LEFTUP);
+            sleep(time::Duration::from_millis(50));
+        }
+
+        let stage = configuration.get("FarmStage").unwrap();
+        send_string(stage.to_string(), true);
+    }
+
+    unsafe fn enter_dungeon_available(&self) -> bool {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_enter = settings.get("PositionEnter").unwrap().split(",");
+        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        let pixel_color = get_pixel(coordinates_enter[0], coordinates_enter[1]);
+        let color_enter = settings.get("Enter").unwrap().split(",");
+        for color in color_enter {
+            if color.to_string() == pixel_color {
+                return true
+            }
+        }
+
+        false
+    }
+
+    unsafe fn enter_dungeon(&self) {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_enter = settings.get("PositionEnter").unwrap().split(",");
+        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        loop {
+            if !self.enter_dungeon_available() {
+                break
+            }
+
+            SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
+            move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+            move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+        }
     }
 }

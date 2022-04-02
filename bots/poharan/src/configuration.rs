@@ -6,7 +6,7 @@ pub(crate) fn create_ini() {
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
-        .set("Clients", "Lunar Tempest,Shãrk")
+        .set("Clients", "Lunar Tempest")
         .set("CameraFullTurnPixels", "3174")
         .set("AnimationSpeedHackValue", "8")
         .set("SlowAnimationSpeedHackValue", "5.5");
@@ -31,16 +31,17 @@ pub(crate) fn create_ini() {
 
     // user interface settings related to the lobby
     conf.with_section(Some("UserInterfaceLobby"))
+        .set("PositionDungeonSelected", "1686,317")
+        .set("DungeonSelected", "0x3E261C")
         .set("PositionClickDungeon", "1561,666")
+        .set("PositionStageSelected", "1732,485")
+        .set("StageSelected", "0xE2E2E2")
         .set("PositionStageRightSide", "1747,478")
         .set("PositionStageLeftSide", "1710,478")
         .set("PositionReady", "962,1037")
         .set("PositionChat", "160,883")
-        .set("PositionEnter", "1026,1037")
-        .set("PositionDuoReady", "984,119")
-        .set("DuoReady", "0x38D454")
-        .set("PositionMemberInLobby", "965,120")
-        .set("MemberInLobby", "0xD4B449")
+        .set("PositionEnter", "990,1036")
+        .set("Enter", "0xFFFFFF")
         .set("PositionHasInvite", "1265,964")
         .set("HasInvite", "0xFFFFFF")
         .set("PositionIsReady", "940,1036")
