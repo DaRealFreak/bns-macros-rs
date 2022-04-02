@@ -9,9 +9,9 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_Y;
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
-use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
+use bns_utility::send_key;
 
 use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;

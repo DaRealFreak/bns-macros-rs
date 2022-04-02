@@ -9,12 +9,77 @@ use bns_utility::send_keys;
 use crate::Poharan;
 
 pub(crate) trait HotKeys {
-    unsafe fn map_transparency_toggle(&self);
+    unsafe fn hotkeys_map_transparency_toggle(&self);
+    unsafe fn hotkeys_get_into_combat(&self);
+    unsafe fn hotkeys_auto_combat_toggle(&self);
+    unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
+    unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self);
+    unsafe fn hotkeys_animation_speed_hack_enable(&self);
+    unsafe fn hotkeys_animation_speed_hack_disable(&self);
+    unsafe fn hotkeys_slow_animation_speed_hack_enable(&self);
+    unsafe fn hotkeys_animation_speed_hack_warlock_enable(&self);
+    unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self);
+    unsafe fn hotkeys_fly_hack_boss_1(&self);
+    unsafe fn hotkeys_fly_hack_boss_2(&self);
+    unsafe fn hotkeys_fly_hack_disable(&self);
+    unsafe fn hotkeys_clip_shadow_play(&self);
 }
 
 impl HotKeys for Poharan {
-    unsafe fn map_transparency_toggle(&self) {
+    unsafe fn hotkeys_map_transparency_toggle(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "MapTransparency");
+    }
+
+    unsafe fn hotkeys_get_into_combat(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
+    }
+
+    unsafe fn hotkeys_auto_combat_toggle(&self) {
         press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ToggleAutoCombat");
+    }
+
+    unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOn");
+    }
+
+    unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOff");
+    }
+
+    unsafe fn hotkeys_animation_speed_hack_enable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOn");
+    }
+
+    unsafe fn hotkeys_animation_speed_hack_disable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOff");
+    }
+
+    unsafe fn hotkeys_slow_animation_speed_hack_enable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "SlowAnimationSpeedHackOn");
+    }
+
+    unsafe fn hotkeys_animation_speed_hack_warlock_enable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOn");
+    }
+
+    unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOff");
+    }
+
+    unsafe fn hotkeys_fly_hack_boss_1(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss1");
+    }
+
+    unsafe fn hotkeys_fly_hack_boss_2(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss2");
+    }
+
+    unsafe fn hotkeys_fly_hack_disable(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
+    }
+
+    unsafe fn hotkeys_clip_shadow_play(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ShadowPlay");
     }
 }
 
