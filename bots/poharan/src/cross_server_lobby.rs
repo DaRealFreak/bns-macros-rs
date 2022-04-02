@@ -22,7 +22,7 @@ impl CrossServerLobby for Poharan {
 
             // timeout check, return as failed after 20 seconds
             if start.elapsed().as_secs() > 20 {
-                false
+                return false;
             }
 
             self.activity.check_game_activity();
