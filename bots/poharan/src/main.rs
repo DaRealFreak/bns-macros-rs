@@ -17,6 +17,7 @@ use crate::lobby::Lobby;
 
 mod configuration;
 mod lobby;
+mod hotkeys;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
@@ -54,14 +55,21 @@ impl Poharan {
     }
 
     unsafe fn enter_lobby(&mut self) -> bool {
+        let configuration = self.settings.section(Some("Configuration")).unwrap();
+
         println!("[{}] entering Lobby", Local::now().to_rfc2822());
 
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
         switch_to_hwnd(self.start_hwnd);
+        println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
         loop {
             if self.in_f8_lobby() {
                 break
             }
+
+            self.activity.check_game_activity();
         }
+        println!("[{}] found lobby screen", Local::now().to_rfc2822());
 
         self.open_chat();
         for player in self.clients() {
@@ -78,13 +86,17 @@ impl Poharan {
                 continue
             }
 
-            println!("[{}] switching to window handle {}", Local::now().to_rfc2822(), hwnd.0);
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
             switch_to_hwnd(hwnd);
+            println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
             loop {
                 if self.in_f8_lobby() {
                     break
                 }
+
+                self.activity.check_game_activity();
             }
+            println!("[{}] found lobby screen", Local::now().to_rfc2822());
 
             if self.has_player_invite() {
                 println!("[{}] accepting lobby invite", Local::now().to_rfc2822());
@@ -107,7 +119,18 @@ impl Poharan {
             }
         }
 
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
         switch_to_hwnd(self.start_hwnd);
+
+        println!("[{}] selecting dungeon", Local::now().to_rfc2822());
+        self.select_dungeon();
+
+        println!("[{}] selecting stage {}", Local::now().to_rfc2822(), configuration.get("FarmStage").unwrap());
+        self.select_stage();
+
+        println!("[{}] moving to dungeon", Local::now().to_rfc2822());
+        self.enter_dungeon();
+
         sleep(time::Duration::from_secs(10));
         return true
     }
