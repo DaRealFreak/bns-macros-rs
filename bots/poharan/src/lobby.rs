@@ -15,6 +15,7 @@ pub(crate) trait Lobby {
     unsafe fn has_player_invite(&self) -> bool;
     unsafe fn is_player_ready(&self) -> bool;
     unsafe fn ready_up(&self);
+    unsafe fn in_f8_lobby(&self) -> bool;
 }
 
 impl Lobby for Poharan {
@@ -94,5 +95,21 @@ impl Lobby for Poharan {
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
+    }
+
+    unsafe fn in_f8_lobby(&self) -> bool {
+        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_ready = settings.get("PositionInF8Lobby").unwrap().split(",");
+        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        let pixel_color = get_pixel(res[0], res[1]);
+        let color_in_f8_lobby = settings.get("InF8Lobby").unwrap().split(",");
+        for color in color_in_f8_lobby {
+            if color.to_string() == pixel_color {
+                return true
+            }
+        }
+
+        false
     }
 }

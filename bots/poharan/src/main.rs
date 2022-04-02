@@ -57,6 +57,12 @@ impl Poharan {
         println!("[{}] entering Lobby", Local::now().to_rfc2822());
 
         switch_to_hwnd(self.start_hwnd);
+        loop {
+            if self.in_f8_lobby() {
+                break
+            }
+        }
+
         self.open_chat();
         for player in self.clients() {
             println!("[{}] inviting player \"{}\"", Local::now().to_rfc2822(), player);
@@ -74,6 +80,11 @@ impl Poharan {
 
             println!("[{}] switching to window handle {}", Local::now().to_rfc2822(), hwnd.0);
             switch_to_hwnd(hwnd);
+            loop {
+                if self.in_f8_lobby() {
+                    break
+                }
+            }
 
             if self.has_player_invite() {
                 println!("[{}] accepting lobby invite", Local::now().to_rfc2822());

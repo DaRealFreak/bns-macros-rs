@@ -56,7 +56,7 @@ pub unsafe fn send_string(text: String, unicode: bool) {
     let flags = if unicode { KEYEVENTF_UNICODE } else { KEYBD_EVENT_FLAGS(0) };
     let key_events = vec![KEYBD_EVENT_FLAGS(0), KEYEVENTF_KEYUP];
 
-    let mut chars: Vec<u16> = text.encode_utf16().collect();
+    let chars: Vec<u16> = text.encode_utf16().collect();
     for char in chars {
         for key_event in key_events.clone() {
             if unicode {
