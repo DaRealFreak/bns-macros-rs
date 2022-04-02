@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use windows::Win32::Graphics::Gdi::{GetDC, GetPixel};
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MOUSE_EVENT_FLAGS, MOUSEINPUT, SendInput, VIRTUAL_KEY};
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MapVirtualKeyA, MOUSE_EVENT_FLAGS, MOUSEINPUT, SendInput, VIRTUAL_KEY};
 
 pub mod game;
 pub mod activity;
@@ -41,7 +41,7 @@ pub unsafe fn send_key(key: VIRTUAL_KEY, down: bool) {
         Anonymous: INPUT_0 {
             ki: KEYBDINPUT {
                 wVk: key,
-                wScan: 0,
+                wScan: MapVirtualKeyA(key.0 as u32, 0) as u16,
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: 0,
@@ -61,7 +61,7 @@ pub unsafe fn send_keys(keys: Vec<VIRTUAL_KEY>, down: bool) {
             Anonymous: INPUT_0 {
                 ki: KEYBDINPUT {
                     wVk: key,
-                    wScan: 0,
+                    wScan: MapVirtualKeyA(key.0 as u32, 0) as u16,
                     dwFlags: flags,
                     time: 0,
                     dwExtraInfo: 0,
@@ -102,7 +102,7 @@ pub unsafe fn send_string(text: String, unicode: bool) {
                     Anonymous: INPUT_0 {
                         ki: KEYBDINPUT {
                             wVk: VIRTUAL_KEY(char),
-                            wScan: 0,
+                            wScan: MapVirtualKeyA(char as u32, 0) as u16,
                             dwFlags: key_event | flags,
                             time: 0,
                             dwExtraInfo: 0,
