@@ -1,3 +1,4 @@
+use std::time;
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_SHIFT, VK_W};
 
 use bns_utility::send_keys;
@@ -13,10 +14,15 @@ impl CrossServerLobby for Poharan {
         send_keys(vec![VK_W, VK_SHIFT], true);
         send_keys(vec![VK_SHIFT], false);
 
+        let start = time::Instant::now();
         loop {
-            // FixMe: add timeout
             if self.in_loading_screen() {
                 break;
+            }
+
+            // timeout check, return as failed after 20 seconds
+            if start.elapsed().as_secs() > 20 {
+                false
             }
 
             self.activity.check_game_activity();
