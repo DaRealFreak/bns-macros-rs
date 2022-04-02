@@ -51,6 +51,29 @@ pub unsafe fn send_key(key: VIRTUAL_KEY, down: bool) {
     SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
 }
 
+pub unsafe fn send_keys(keys: Vec<VIRTUAL_KEY>, down: bool) {
+    let flags = if down { KEYBD_EVENT_FLAGS(0) } else { KEYEVENTF_KEYUP };
+    let mut inputs: Vec<INPUT> = vec![];
+
+    for key in keys {
+        let input = INPUT {
+            r#type: INPUT_KEYBOARD,
+            Anonymous: INPUT_0 {
+                ki: KEYBDINPUT {
+                    wVk: key,
+                    wScan: 0,
+                    dwFlags: flags,
+                    time: 0,
+                    dwExtraInfo: 0,
+                }
+            },
+        };
+        inputs.push(input);
+    }
+
+    SendInput(inputs.as_ref(), std::mem::size_of::<INPUT>() as i32);
+}
+
 pub unsafe fn send_string(text: String, unicode: bool) {
     let mut pinputs: Vec<INPUT> = vec![];
     let flags = if unicode { KEYEVENTF_UNICODE } else { KEYBD_EVENT_FLAGS(0) };
