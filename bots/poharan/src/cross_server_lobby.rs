@@ -18,6 +18,8 @@ impl CrossServerLobby for Poharan {
             if self.in_loading_screen() {
                 break;
             }
+
+            self.activity.check_game_activity();
         }
 
         send_keys(vec![VK_W], false);
