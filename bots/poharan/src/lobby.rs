@@ -32,11 +32,13 @@ impl Lobby for Poharan {
         let position_chat = interface_settings.get("PositionChat").unwrap().split(",");
         let res: Vec<i32> = position_chat.map(|s| s.parse::<i32>().unwrap()).collect();
 
-        SetCursorPos(res[0], res[1]);
-        move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
-        move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
-
-        sleep(time::Duration::from_millis(50));
+        for _ in 0..5 {
+            SetCursorPos(res[0], res[1]);
+            sleep(time::Duration::from_millis(20));
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+            move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+            sleep(time::Duration::from_millis(20));
+        }
     }
 
     fn clients(&self) -> Vec<String> {
@@ -101,9 +103,18 @@ impl Lobby for Poharan {
 
             had_invite = true;
             self.activity.check_game_activity();
+
+            // move mouse to 0,0 and click to avoid being trapped in chat, failing to accept the invite
+            for _ in 0..5 {
+                SetCursorPos(0, 0);
+                sleep(time::Duration::from_millis(20));
+                move_mouse(0, 0, MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+                move_mouse(0, 0, MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+                sleep(time::Duration::from_millis(20));
+            }
+
             send_key(VK_Y, true);
             send_key(VK_Y, false);
-            sleep(time::Duration::from_millis(20));
         }
 
         if had_invite {
@@ -146,7 +157,7 @@ impl Lobby for Poharan {
         while !self.is_player_ready() {
             self.activity.check_game_activity();
             SetCursorPos(res[0], res[1]);
-            sleep(time::Duration::from_millis(5));
+            sleep(time::Duration::from_millis(50));
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
@@ -192,7 +203,7 @@ impl Lobby for Poharan {
         while !self.dungeon_selected() {
             self.activity.check_game_activity();
             SetCursorPos(res[0], res[1]);
-            sleep(time::Duration::from_millis(5));
+            sleep(time::Duration::from_millis(50));
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
@@ -245,7 +256,8 @@ impl Lobby for Poharan {
 
         sleep(time::Duration::from_millis(300));
         let stage = configuration.get("FarmStage").unwrap();
-        send_string(stage.to_string(), true);
+        send_string(stage.to_string(), false);
+        sleep(time::Duration::from_millis(200));
     }
 
     unsafe fn enter_dungeon_available(&self) -> bool {
@@ -275,7 +287,7 @@ impl Lobby for Poharan {
             }
 
             SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
-            sleep(time::Duration::from_millis(5));
+            sleep(time::Duration::from_millis(50));
             move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
