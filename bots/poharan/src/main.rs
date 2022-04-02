@@ -110,7 +110,7 @@ impl Poharan {
         }
 
         // let the other clients receive the invite first
-        sleep(time::Duration::from_millis(250));
+        sleep(time::Duration::from_millis(400));
 
         for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
             // ignore starting window hwnd since he handles the invites
