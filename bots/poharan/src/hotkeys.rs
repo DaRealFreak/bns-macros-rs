@@ -31,7 +31,9 @@ impl HotKeys for Poharan {
     }
 
     unsafe fn hotkeys_get_into_combat(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
+        for _ in 0..5 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
+        }
     }
 
     unsafe fn hotkeys_auto_combat_toggle(&self) {
@@ -39,49 +41,73 @@ impl HotKeys for Poharan {
     }
 
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self) {
-        for _ in 0..20 {
+        for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOn");
             sleep(time::Duration::from_millis(150));
         }
     }
 
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self) {
-        for _ in 0..20 {
+        for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOff");
             sleep(time::Duration::from_millis(50));
         }
     }
 
     unsafe fn hotkeys_animation_speed_hack_enable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOn");
+        for _ in 0..15 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOn");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_animation_speed_hack_disable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOff");
+        for _ in 0..15 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOff");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_slow_animation_speed_hack_enable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "SlowAnimationSpeedHackOn");
+        for _ in 0..15 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "SlowAnimationSpeedHackOn");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_animation_speed_hack_warlock_enable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOn");
+        for _ in 0..15 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOn");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOff");
+        for _ in 0..15 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOff");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_fly_hack_boss_1(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss1");
+        for _ in 0..5 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss1");
+            sleep(time::Duration::from_millis(100));
+        }
     }
 
     unsafe fn hotkeys_fly_hack_boss_2(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss2");
+        for _ in 0..5 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss2");
+            sleep(time::Duration::from_millis(100));
+        }
     }
 
     unsafe fn hotkeys_fly_hack_disable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
+        for _ in 0..5 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
+            sleep(time::Duration::from_millis(100));
+        }
     }
 
     unsafe fn hotkeys_clip_shadow_play(&self) {

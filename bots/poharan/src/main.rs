@@ -6,12 +6,15 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::Foundation::HWND;
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_S, VK_SHIFT, VK_W};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
-use crate::cross_server_lobby::CrossServerLobby;
+use bns_utility::{send_key, send_keys};
 
+use crate::cross_server_lobby::CrossServerLobby;
+use crate::dungeon::Dungeon;
 use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
 use crate::user_interface::UserInterface;
@@ -183,7 +186,72 @@ impl Poharan {
             return false
         }
 
+        self.move_to_boss_1()
+    }
+
+    unsafe fn move_to_boss_1(&self) -> bool {
+        println!("[{}] wait for loading screen", Local::now().to_rfc2822());
+        self.wait_loading_screen();
+
+        println!("[{}] waiting for fade in", Local::now().to_rfc2822());
+        sleep(time::Duration::from_millis(250));
+
+        println!("[{}] move to portal position", Local::now().to_rfc2822());
+        send_keys(vec![VK_A, VK_W, VK_SHIFT], true);
+        sleep(time::Duration::from_millis(350));
+        send_keys(vec![VK_SHIFT, VK_A], false);
+        sleep(time::Duration::from_millis(1750));
+        send_key(VK_W, false);
+
+        println!("[{}] opening portal to boss 1", Local::now().to_rfc2822());
+        self.open_portal(1);
+
+        sleep(time::Duration::from_millis(2000));
+        if !self.portal_icon_visible() {
+            println!("[{}] unable to find portal to boss 1", Local::now().to_rfc2822());
+            return false;
+        }
+
+        println!("[{}] enable animation speed hack for the warlock", Local::now().to_rfc2822());
+        self.hotkeys_animation_speed_hack_warlock_enable();
+
+        println!("[{}] use portal to boss 1", Local::now().to_rfc2822());
+        let start = time::Instant::now();
+        loop {
+            if start.elapsed().as_secs() > 4 {
+                break;
+            }
+
+            send_key(VK_F, true);
+            sleep(time::Duration::from_millis(2));
+            send_key(VK_F, false);
+            self.hotkeys_animation_speed_hack_warlock_enable();
+        }
+
+        println!("[{}] get into combat for fixed movement speed", Local::now().to_rfc2822());
+        self.hotkeys_get_into_combat();
+
+        println!("[{}] move into position for boss 1", Local::now().to_rfc2822());
+
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(6500, false));
+        send_key(VK_W, false);
+
+        send_key(VK_D, true);
+        sleep(self.get_sleep_time(9000, false));
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(6000, false));
+        send_keys(vec![VK_D, VK_W], false);
+
+        send_keys(vec![VK_A, VK_S], true);
+        sleep(self.get_sleep_time(200, false));
+        send_keys(vec![VK_A, VK_S], false);
+
         false
+    }
+
+    unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
+        time::Duration::from_millis((original_time as f64 / self.animation_speed()) as u64)
     }
 }
 

@@ -6,7 +6,7 @@ use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::{get_pixel, move_mouse, send_key, send_string};
 
-use crate::Poharan;
+use crate::{Poharan, UserInterface};
 
 pub(crate) trait Lobby {
     unsafe fn open_chat(&self);
@@ -63,35 +63,11 @@ impl Lobby for Poharan {
     }
 
     unsafe fn has_player_invite(&self) -> bool {
-        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_is_ready = interface_settings.get("PositionHasInvite").unwrap().split(",");
-        let res: Vec<i32> = position_is_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_is_ready = interface_settings.get("HasInvite").unwrap().split(",");
-        for color in color_is_ready {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionHasInvite", "HasInvite")
     }
 
     unsafe fn has_player_party_join_request(&self) -> bool {
-        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_is_ready = interface_settings.get("PositionHasPartyJoinRequest").unwrap().split(",");
-        let res: Vec<i32> = position_is_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_is_ready = interface_settings.get("HasPartyJoinRequest").unwrap().split(",");
-        for color in color_is_ready {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionHasPartyJoinRequest", "HasPartyJoinRequest")
     }
 
     unsafe fn accept_lobby_invite(&self) {
@@ -134,19 +110,7 @@ impl Lobby for Poharan {
     }
 
     unsafe fn is_player_ready(&self) -> bool {
-        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_is_ready = interface_settings.get("PositionIsReady").unwrap().split(",");
-        let res: Vec<i32> = position_is_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_is_ready = interface_settings.get("IsReady").unwrap().split(",");
-        for color in color_is_ready {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionIsReady", "IsReady")
     }
 
     unsafe fn ready_up(&self) {
@@ -164,35 +128,11 @@ impl Lobby for Poharan {
     }
 
     unsafe fn in_f8_lobby(&self) -> bool {
-        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_ready = settings.get("PositionInF8Lobby").unwrap().split(",");
-        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_in_f8_lobby = settings.get("InF8Lobby").unwrap().split(",");
-        for color in color_in_f8_lobby {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionInF8Lobby", "InF8Lobby")
     }
 
     unsafe fn dungeon_selected(&self) -> bool {
-        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_ready = settings.get("PositionDungeonSelected").unwrap().split(",");
-        let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_dungeon_selected = settings.get("DungeonSelected").unwrap().split(",");
-        for color in color_dungeon_selected {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionDungeonSelected", "DungeonSelected")
     }
 
     unsafe fn select_dungeon(&self) {
@@ -210,20 +150,7 @@ impl Lobby for Poharan {
     }
 
     unsafe fn stage_selected(&self) -> bool {
-        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-
-        let position_stage_selected = settings.get("PositionStageSelected").unwrap().split(",");
-        let coordinates_stage_selected: Vec<i32> = position_stage_selected.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(coordinates_stage_selected[0], coordinates_stage_selected[1]);
-        let color_stage_selected = settings.get("StageSelected").unwrap().split(",");
-        for color in color_stage_selected {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionStageSelected", "StageSelected")
     }
 
     unsafe fn select_stage(&self) {
@@ -243,37 +170,25 @@ impl Lobby for Poharan {
             self.activity.check_game_activity();
             // press mouse down on the right side of the stage selection
             SetCursorPos(coordinates_stage_right[0], coordinates_stage_right[1]);
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(150));
             move_mouse(0, 0, MOUSEEVENTF_LEFTDOWN);
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(150));
 
             // release mouse on the left side of the stage selection
             SetCursorPos(coordinates_stage_left[0], coordinates_stage_left[1]);
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(150));
             move_mouse(0, 0, MOUSEEVENTF_LEFTUP);
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(150));
         }
 
         sleep(time::Duration::from_millis(300));
         let stage = configuration.get("FarmStage").unwrap();
         send_string(stage.to_string(), false);
-        sleep(time::Duration::from_millis(200));
+        sleep(time::Duration::from_millis(100));
     }
 
     unsafe fn enter_dungeon_available(&self) -> bool {
-        let settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
-        let position_enter = settings.get("PositionEnter").unwrap().split(",");
-        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
-
-        let pixel_color = get_pixel(coordinates_enter[0], coordinates_enter[1]);
-        let color_enter = settings.get("Enter").unwrap().split(",");
-        for color in color_enter {
-            if color.to_string() == pixel_color {
-                return true
-            }
-        }
-
-        false
+        self.pixel_matches("UserInterfaceLobby", "PositionEnter", "Enter")
     }
 
     unsafe fn enter_dungeon(&self) {
