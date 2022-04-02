@@ -39,11 +39,17 @@ impl HotKeys for Poharan {
     }
 
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOn");
+        for _ in 0..20 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOn");
+            sleep(time::Duration::from_millis(150));
+        }
     }
 
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOff");
+        for _ in 0..20 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOff");
+            sleep(time::Duration::from_millis(50));
+        }
     }
 
     unsafe fn hotkeys_animation_speed_hack_enable(&self) {

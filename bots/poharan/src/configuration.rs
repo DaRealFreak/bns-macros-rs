@@ -17,7 +17,7 @@ pub(crate) fn create_ini() {
         .set("MapTransparency", "0x4E")
         .set("GetIntoCombat", "0x5A")
         .set("ToggleAutoCombat", "0xA0,0x73")
-        .set("CheatEngineSpeedHackOn", "0x67")
+        .set("CheatEngineSpeedHackOn", "0x6D")
         .set("CheatEngineSpeedHackOff", "0x63")
         .set("AnimationSpeedHackOn", "0x66")
         .set("SlowAnimationSpeedHackOn", "0x81")
@@ -44,13 +44,19 @@ pub(crate) fn create_ini() {
         .set("Enter", "0xFFFFFF")
         .set("PositionHasInvite", "1265,964")
         .set("HasInvite", "0xFFFFFF")
+        .set("PositionHasPartyJoinRequest", "886,588")
+        .set("HasPartyJoinRequest", "0xFFFFFF")
         .set("PositionIsReady", "940,1036")
         .set("IsReady", "0x898989,0xFFFFFF")
         .set("PositionInF8Lobby", "23,34")
         .set("InF8Lobby", "0xCECECF");
 
     // user interface settings related to the party management
-    conf.with_section(Some("UserInterfaceParty"))
+    conf.with_section(Some("UserInterfaceGeneral"))
+        .set("PositionOutOfLoadingScreen", "811,794")
+        .set("OutOfLoadingScreen", "0xED5E11")
+        .set("PositionLoadingScreen", "1861,1062")
+        .set("LoadingScreen", "0x090303")
         .set("PositionExit", "1770,870")
         .set("PositionLeaveParty", "321,78");
 

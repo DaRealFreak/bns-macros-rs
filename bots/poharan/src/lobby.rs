@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_RETURN};
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_RETURN, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::{get_pixel, move_mouse, send_key, send_string};
@@ -13,6 +13,8 @@ pub(crate) trait Lobby {
     fn clients(&self) -> Vec<String>;
     unsafe fn invite_player(&self, player: String);
     unsafe fn has_player_invite(&self) -> bool;
+    unsafe fn has_player_party_join_request(&self) -> bool;
+    unsafe fn accept_lobby_invite(&self);
     unsafe fn is_player_ready(&self) -> bool;
     unsafe fn ready_up(&self);
     unsafe fn in_f8_lobby(&self) -> bool;
@@ -74,6 +76,52 @@ impl Lobby for Poharan {
         false
     }
 
+    unsafe fn has_player_party_join_request(&self) -> bool {
+        let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
+        let position_is_ready = interface_settings.get("PositionHasPartyJoinRequest").unwrap().split(",");
+        let res: Vec<i32> = position_is_ready.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        let pixel_color = get_pixel(res[0], res[1]);
+        let color_is_ready = interface_settings.get("HasPartyJoinRequest").unwrap().split(",");
+        for color in color_is_ready {
+            if color.to_string() == pixel_color {
+                return true
+            }
+        }
+
+        false
+    }
+
+    unsafe fn accept_lobby_invite(&self) {
+        let mut had_invite = false;
+        loop {
+            if !self.has_player_invite() {
+                break;
+            }
+
+            had_invite = true;
+            self.activity.check_game_activity();
+            send_key(VK_Y, true);
+            send_key(VK_Y, false);
+            sleep(time::Duration::from_millis(20));
+        }
+
+        if had_invite {
+            sleep(time::Duration::from_millis(250));
+        }
+
+        loop {
+            if !self.has_player_party_join_request() {
+                break;
+            }
+
+            self.activity.check_game_activity();
+            send_key(VK_Y, true);
+            send_key(VK_Y, false);
+            sleep(time::Duration::from_millis(20));
+        }
+    }
+
     unsafe fn is_player_ready(&self) -> bool {
         let interface_settings = self.settings.section(Some("UserInterfaceLobby")).unwrap();
         let position_is_ready = interface_settings.get("PositionIsReady").unwrap().split(",");
@@ -98,6 +146,7 @@ impl Lobby for Poharan {
         while !self.is_player_ready() {
             self.activity.check_game_activity();
             SetCursorPos(res[0], res[1]);
+            sleep(time::Duration::from_millis(5));
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
@@ -143,6 +192,7 @@ impl Lobby for Poharan {
         while !self.dungeon_selected() {
             self.activity.check_game_activity();
             SetCursorPos(res[0], res[1]);
+            sleep(time::Duration::from_millis(5));
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }
@@ -193,6 +243,7 @@ impl Lobby for Poharan {
             sleep(time::Duration::from_millis(50));
         }
 
+        sleep(time::Duration::from_millis(300));
         let stage = configuration.get("FarmStage").unwrap();
         send_string(stage.to_string(), true);
     }
@@ -224,6 +275,7 @@ impl Lobby for Poharan {
             }
 
             SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
+            sleep(time::Duration::from_millis(5));
             move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
             move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
         }

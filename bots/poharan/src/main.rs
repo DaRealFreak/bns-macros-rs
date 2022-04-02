@@ -6,19 +6,21 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_Y;
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
-use bns_utility::send_key;
+use crate::cross_server_lobby::CrossServerLobby;
 
 use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
+use crate::user_interface::UserInterface;
 
 mod configuration;
-mod lobby;
+mod cross_server_lobby;
 mod hotkeys;
+mod lobby;
+mod user_interface;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
@@ -61,6 +63,26 @@ impl Poharan {
         false
     }
 
+    /// wait until we are in a loading screen first and then wait until we are out of the loading screen
+    unsafe fn wait_loading_screen(&self) {
+        loop {
+            if self.in_loading_screen() {
+                break;
+            }
+
+            self.activity.check_game_activity();
+        }
+
+        loop {
+            if self.out_of_loading_screen() {
+                break;
+            }
+
+            self.activity.check_game_activity();
+        }
+    }
+
+    /// full lobby functionality, invite players, accept invites, select dungeon/stage and enter the dungeon
     unsafe fn enter_lobby(&mut self) {
         let configuration = self.settings.section(Some("Configuration")).unwrap();
 
@@ -79,9 +101,12 @@ impl Poharan {
         println!("[{}] found lobby screen", Local::now().to_rfc2822());
 
         self.open_chat();
+        sleep(time::Duration::from_millis(150));
         for player in self.clients() {
             println!("[{}] inviting player \"{}\"", Local::now().to_rfc2822(), player);
-            self.invite_player(player);
+            for _ in 0..2 {
+                self.invite_player(player.clone());
+            }
         }
 
         // let the other clients receive the invite first
@@ -107,15 +132,10 @@ impl Poharan {
 
             if self.has_player_invite() {
                 println!("[{}] accepting lobby invite", Local::now().to_rfc2822());
-                for _ in 0..4 {
-                    send_key(VK_Y, true);
-                    send_key(VK_Y, false);
-                    sleep(time::Duration::from_millis(20));
-                    send_key(VK_Y, true);
-                    send_key(VK_Y, false);
-                    sleep(time::Duration::from_millis(20));
-                }
+                self.accept_lobby_invite();
+            }
 
+            if !self.is_player_ready() {
                 println!("[{}] readying up", Local::now().to_rfc2822());
                 self.ready_up();
             }
@@ -137,9 +157,31 @@ impl Poharan {
 
         println!("[{}] moving to dungeon", Local::now().to_rfc2822());
         self.enter_dungeon();
+
+        println!("[{}] enable cheat engine speed hack", Local::now().to_rfc2822());
+        self.hotkeys_cheat_engine_speed_hack_enable();
+
+        loop {
+            if self.in_loading_screen() {
+                break;
+            }
+
+            self.activity.check_game_activity();
+        }
+
+        println!("[{}] disable cheat engine speed hack", Local::now().to_rfc2822());
+        self.hotkeys_cheat_engine_speed_hack_disable();
     }
 
     unsafe fn move_to_dungeon(&self) -> bool {
+        println!("[{}] wait for loading screen", Local::now().to_rfc2822());
+        self.wait_loading_screen();
+
+        println!("[{}] running warlock into the dungeon", Local::now().to_rfc2822());
+        if !self.run_into_dungeon() {
+            return false
+        }
+
         false
     }
 }
