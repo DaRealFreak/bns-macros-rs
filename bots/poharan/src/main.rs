@@ -18,6 +18,7 @@ use crate::user_interface::UserInterface;
 
 mod configuration;
 mod cross_server_lobby;
+mod dungeon;
 mod hotkeys;
 mod lobby;
 mod user_interface;
