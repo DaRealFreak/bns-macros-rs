@@ -17,7 +17,7 @@ pub(crate) fn create_ini() {
         .set("MapTransparency", "0x4E")
         .set("GetIntoCombat", "0x5A")
         .set("ToggleAutoCombat", "0xA0,0x73")
-        .set("CheatEngineSpeedHackOn", "0x6D")
+        .set("CheatEngineSpeedHackOn", "0x91")
         .set("CheatEngineSpeedHackOff", "0x63")
         .set("AnimationSpeedHackOn", "0x66")
         .set("SlowAnimationSpeedHackOn", "0x81")
