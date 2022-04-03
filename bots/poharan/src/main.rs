@@ -9,13 +9,13 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_S, VK_SHIFT, VK_W};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
+use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
-use bns_utility::{send_key, send_keys};
 
 use crate::cross_server_lobby::CrossServerLobby;
 use crate::dungeon::Dungeon;
-use crate::hotkeys::HotKeys;
+use crate::hotkeys::{Degree, HotKeys};
 use crate::lobby::Lobby;
 use crate::user_interface::UserInterface;
 
@@ -97,7 +97,7 @@ impl Poharan {
         println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
         loop {
             if self.in_f8_lobby() {
-                break
+                break;
             }
 
             self.activity.check_game_activity();
@@ -119,7 +119,7 @@ impl Poharan {
         for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
             // ignore starting window hwnd since he handles the invites
             if hwnd.0 == self.start_hwnd.0 {
-                continue
+                continue;
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
@@ -127,7 +127,7 @@ impl Poharan {
             println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
             loop {
                 if self.in_f8_lobby() {
-                    break
+                    break;
                 }
 
                 self.activity.check_game_activity();
@@ -183,7 +183,7 @@ impl Poharan {
 
         println!("[{}] running warlock into the dungeon", Local::now().to_rfc2822());
         if !self.run_into_dungeon() {
-            return false
+            return false;
         }
 
         self.move_to_boss_1()
@@ -208,7 +208,7 @@ impl Poharan {
 
         sleep(time::Duration::from_millis(2000));
         if !self.portal_icon_visible() {
-            println!("[{}] unable to find portal to boss 1", Local::now().to_rfc2822());
+            println!("[{}] unable to find portal to boss 1, abandoning run", Local::now().to_rfc2822());
             return false;
         }
 
@@ -232,7 +232,6 @@ impl Poharan {
         self.hotkeys_get_into_combat();
 
         println!("[{}] move into position for boss 1", Local::now().to_rfc2822());
-
         send_key(VK_W, true);
         sleep(self.get_sleep_time(6500, false));
         send_key(VK_W, false);
@@ -247,11 +246,99 @@ impl Poharan {
         sleep(self.get_sleep_time(200, false));
         send_keys(vec![VK_A, VK_S], false);
 
+        self.fight_boss_1()
+    }
+
+    unsafe fn fight_boss_1(&self) -> bool {
+        println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        let start = time::Instant::now();
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore starting window hwnd since he handles the invites
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+            switch_to_hwnd(hwnd.to_owned());
+
+            println!("[{}] running client {} into the dungeon", Local::now().to_rfc2822(), index + 1);
+            if !self.run_into_dungeon() {
+                println!("[{}] unable to run the client {} into the dungeon, abandoning run", Local::now().to_rfc2822(), index + 1);
+                return false;
+            }
+        }
+
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        println!("[{}] wait for dynamic quest", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            // Tae Jangum dead and dynamic quest started
+            if self.dynamic_visible() {
+                println!("[{}] found dynamic quest", Local::now().to_rfc2822());
+                break;
+            }
+
+            // died during the fight
+            if self.revive_visible() {
+                println!("[{}] revive visible, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+
+            // timeout, we should've run into the enrage timer as well
+            if start.elapsed().as_secs() > 95 {
+                println!("[{}] ran into a timeout during Tae Jangum, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+        }
+
+        println!("[{}] sleep to let warlock pick up possible loot", Local::now().to_rfc2822());
+        sleep(time::Duration::from_millis(2000));
+
+        println!("[{}] sleep to let warlock run into the return position", Local::now().to_rfc2822());
+        sleep(self.get_sleep_time(6000, false));
+
+        println!("[{}] deactivating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        println!("[{}] opening portal to boss 2", Local::now().to_rfc2822());
+        self.open_portal(2);
+
+        println!("[{}] wait to get out of combat", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                break;
+            }
+
+            if self.revive_visible() {
+                println!("[{}] somehow died after Tae Jungum, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+        }
+
+        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+
+        self.move_to_bridge()
+    }
+
+    unsafe fn move_to_bridge(&self) -> bool {
+
         false
     }
 
     unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
-        time::Duration::from_millis((original_time as f64 / self.animation_speed()) as u64)
+        if slow {
+            time::Duration::from_millis((original_time as f64 / self.animation_speed_slow()) as u64)
+        } else {
+            time::Duration::from_millis((original_time as f64 / self.animation_speed()) as u64)
+        }
     }
 }
 

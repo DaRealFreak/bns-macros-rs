@@ -6,8 +6,12 @@ use crate::{HotKeys, Poharan, UserInterface};
 
 pub(crate) trait Dungeon {
     unsafe fn animation_speed(&self) -> f64;
+    unsafe fn animation_speed_slow(&self) -> f64;
     unsafe fn thrall_available(&self) -> bool;
     unsafe fn portal_icon_visible(&self) -> bool;
+    unsafe fn revive_visible(&self) -> bool;
+    unsafe fn dynamic_visible(&self) -> bool;
+    unsafe fn out_of_combat(&self) -> bool;
     unsafe fn open_portal(&self, boss: u8);
 }
 
@@ -15,6 +19,13 @@ impl Dungeon for Poharan {
     unsafe fn animation_speed(&self) -> f64 {
         let section_settings = self.settings.section(Some("Configuration")).unwrap();
         let position_settings = section_settings.get("AnimationSpeedHackValue").unwrap();
+
+        position_settings.parse::<f64>().unwrap()
+    }
+
+    unsafe fn animation_speed_slow(&self) -> f64 {
+        let section_settings = self.settings.section(Some("Configuration")).unwrap();
+        let position_settings = section_settings.get("SlowAnimationSpeedHackValue").unwrap();
 
         position_settings.parse::<f64>().unwrap()
     }
@@ -27,8 +38,24 @@ impl Dungeon for Poharan {
         self.pixel_matches("UserInterfaceDungeon", "PositionPortalIcon", "PortalIcon")
     }
 
+    unsafe fn revive_visible(&self) -> bool {
+        self.pixel_matches("UserInterfacePlayer", "PositionReviveVisible", "ReviveVisible")
+    }
+
+    unsafe fn dynamic_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionDynamicQuest", "DynamicQuest")
+    }
+
+    unsafe fn out_of_combat(&self) -> bool {
+        self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
+    }
+
     unsafe fn open_portal(&self, boss: u8) {
-        // ToDo: ThrallReady check
+        loop {
+            if self.thrall_available() {
+                break
+            }
+        }
 
         if boss == 1 {
             self.hotkeys_fly_hack_boss_1();
