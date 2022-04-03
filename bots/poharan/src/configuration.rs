@@ -7,7 +7,6 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
         .set("Clients", "Lunar Tempest")
-        .set("CameraFullTurnPixels", "3174")
         .set("AnimationSpeedHackValue", "8")
         .set("SlowAnimationSpeedHackValue", "5.5");
 
@@ -84,15 +83,6 @@ pub(crate) fn create_ini() {
         .set("ThrallReady", "0x01040E")
         .set("PositionOutOfCombat", "841,837")
         .set("OutOfCombat", "0xA0B930");
-
-    // user interface settings related to the map and camera
-    conf.with_section(Some("UserInterfacePlayerCamera"))
-        .set("PositionMouseOverMap", "1651,251")
-        .set("PositionTrackingMapIcon", "1891,51")
-        .set("PositionMapOpaque", "1892,278")
-        .set("MapOpaque", "0x98896B")
-        .set("PositionMapFixpoint", "1512,169")
-        .set("MapFixpoint", "0x6E7A60");
 
     conf.write_to_file("configuration/poharan.ini").unwrap();
 }
