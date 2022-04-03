@@ -11,14 +11,17 @@ pub(crate) trait UserInterface {
 impl UserInterface for Poharan {
     unsafe fn pixel_matches(&self, section: &str, position_setting: &str, color_setting: &str) -> bool {
         let section_settings = self.settings.section(Some(section)).unwrap();
-        let position_settings = section_settings.get(position_setting).unwrap().split(",");
-        let res: Vec<i32> = position_settings.map(|s| s.parse::<i32>().unwrap()).collect();
+        let position_settings = section_settings.get(position_setting).unwrap().split(";");
+        for position_setting in position_settings {
+            let position_coordinates = position_setting.split(",");
+            let res: Vec<i32> = position_coordinates.map(|s| s.parse::<i32>().unwrap()).collect();
 
-        let pixel_color = get_pixel(res[0], res[1]);
-        let color_settings = section_settings.get(color_setting).unwrap().split(",");
-        for color in color_settings {
-            if color.to_string() == pixel_color {
-                return true
+            let pixel_color = get_pixel(res[0], res[1]);
+            let color_settings = section_settings.get(color_setting).unwrap().split(",");
+            for color in color_settings {
+                if color.to_string() == pixel_color {
+                    return true
+                }
             }
         }
 
