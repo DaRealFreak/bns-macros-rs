@@ -22,7 +22,8 @@ pub(crate) trait Dungeon {
     unsafe fn open_portal(&self, boss: u8);
     unsafe fn use_poharan_portal(&self) -> bool;
     unsafe fn move_to_poharan(&self, warlock: bool);
-    unsafe fn leave_dungeon_client(&self) -> bool;
+    unsafe fn leave_dungeon_client(&self, warlock: bool) -> bool;
+    unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool;
 }
 
 impl Dungeon for Poharan {
@@ -115,6 +116,9 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn use_poharan_portal(&self) -> bool {
+        println!("[{}] turning camera to 0 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
+
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
         sleep(time::Duration::from_millis(350));
@@ -174,7 +178,7 @@ impl Dungeon for Poharan {
         send_keys(vec![VK_W, VK_D], false);
     }
 
-    unsafe fn leave_dungeon_client(&self) -> bool {
+    unsafe fn leave_dungeon_client(&self, warlock: bool) -> bool {
         println!("[{}] deactivating auto combat", Local::now().to_rfc2822());
         self.hotkeys_auto_combat_toggle();
 
@@ -203,8 +207,15 @@ impl Dungeon for Poharan {
         sleep(time::Duration::from_millis(500));
 
         if !self.exit_portal_icon_visible() {
-            println!("[{}] exit portal icon not visible, abandoning run", Local::now().to_rfc2822());
-            return false;
+            if warlock {
+                println!("[{}] exit portal icon not visible, abandoning run", Local::now().to_rfc2822());
+                return false;
+            } else {
+                println!("[{}] probably dropped something from Tae Jangum, trying second route", Local::now().to_rfc2822());
+                if !self.leave_dungeon_client_b1_drop_route() {
+                    return false;
+                }
+            }
         }
 
         println!("[{}] using exit portal", Local::now().to_rfc2822());
@@ -271,5 +282,19 @@ impl Dungeon for Poharan {
         }
 
         true
+    }
+
+    unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool {
+        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+
+        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
+        send_key(VK_SHIFT, false);
+        sleep(self.get_sleep_time(3000, true));
+        send_keys(vec![VK_D, VK_W], false);
+
+        sleep(time::Duration::from_millis(500));
+
+        self.exit_portal_icon_visible()
     }
 }

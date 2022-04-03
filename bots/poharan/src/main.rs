@@ -543,7 +543,7 @@ impl Poharan {
         println!("[{}] disable animation speed hack for the warlock", Local::now().to_rfc2822());
         self.hotkeys_animation_speed_hack_warlock_disable();
 
-        if !self.leave_dungeon_client() {
+        if !self.leave_dungeon_client(true) {
             return false;
         }
 
@@ -557,7 +557,7 @@ impl Poharan {
             switch_to_hwnd(hwnd.to_owned());
 
             println!("[{}] leave dungeon for client {}", Local::now().to_rfc2822(), index + 1);
-            if !self.leave_dungeon_client() {
+            if !self.leave_dungeon_client(false) {
                 return false;
             }
         }
