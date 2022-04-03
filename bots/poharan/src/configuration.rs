@@ -27,7 +27,10 @@ pub(crate) fn create_ini() {
         .set("FlyHackBoss1", "0x68")
         .set("FlyHackBoss2", "0x69")
         .set("DisableFlyHack", "0x64")
-        .set("ShadowPlay", "0x12,0x79");
+        .set("ShadowPlay", "0x12,0x79")
+        .set("TurnCameraTo0Degrees", "0x7D")
+        .set("TurnCameraTo90Degrees", "0x7E")
+        .set("TurnCameraTo270Degrees", "0x7F");
 
     // user interface settings related to the lobby
     conf.with_section(Some("UserInterfaceLobby"))
@@ -66,8 +69,8 @@ pub(crate) fn create_ini() {
         .set("PortalIcon", "0xFEAA00")
         .set("PositionExitPortalIcon", "1148,724")
         .set("ExitPortalIcon", "0xFFE10A")
-        .set("PositionDynamicQuest", "1590,718")
-        .set("DynamicQuest", "0xE38658")
+        .set("PositionDynamicQuest", "1590,718;1594,968")
+        .set("DynamicQuest", "0xE38658,0x58B54C")
         .set("PositionDynamicReward", "1628,685")
         .set("DynamicReward", "0x463E2C")
         .set("PositionBonusRewardSelection", "1614,676")
