@@ -1,15 +1,19 @@
 use std::borrow::Borrow;
 
-use windows::Win32::Graphics::Gdi::{GetDC, GetPixel};
+use windows::Win32::Graphics::Gdi::{GetDC, GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MapVirtualKeyA, MOUSE_EVENT_FLAGS, MOUSEINPUT, SendInput, VIRTUAL_KEY};
 
 pub mod game;
 pub mod activity;
 
+static mut USED_HDC: Option<HDC> = None;
+
 pub unsafe fn get_pixel(x: i32, y: i32) -> String {
-    let hwnd = GetActiveWindow();
-    let hdc = GetDC(hwnd);
-    let pxl = GetPixel(hdc, x, y);
+    if self::USED_HDC.is_none() {
+        let hwnd = GetActiveWindow();
+        self::USED_HDC = Some(GetDC(hwnd));
+    }
+    let pxl = GetPixel(self::USED_HDC.unwrap(), x, y);
     let red = pxl & 0xFF;
     let green = (pxl >> 8) & 0xff;
     let blue = (pxl >> 16) & 0xff;
