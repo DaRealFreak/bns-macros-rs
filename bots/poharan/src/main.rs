@@ -32,7 +32,7 @@ pub(crate) struct Poharan {
     run_count: u16,
     successful_runs: Vec<u16>,
     failed_runs: Vec<u16>,
-    run_start_timestamp: Option<std::time::Instant>,
+    run_start_timestamp: std::time::Instant,
     settings: Ini,
 }
 
@@ -50,7 +50,7 @@ impl Poharan {
             run_count: 0,
             successful_runs: vec![],
             failed_runs: vec![],
-            run_start_timestamp: None,
+            run_start_timestamp: time::Instant::now(),
             settings: test,
         }
     }
@@ -177,7 +177,9 @@ impl Poharan {
         self.hotkeys_cheat_engine_speed_hack_disable();
     }
 
-    unsafe fn move_to_dungeon(&self) -> bool {
+    unsafe fn move_to_dungeon(&mut self) -> bool {
+        self.run_start_timestamp = time::Instant::now();
+
         println!("[{}] wait for loading screen", Local::now().to_rfc2822());
         self.wait_loading_screen();
 
@@ -206,10 +208,16 @@ impl Poharan {
         println!("[{}] opening portal to boss 1", Local::now().to_rfc2822());
         self.open_portal(1);
 
-        sleep(time::Duration::from_millis(2000));
-        if !self.portal_icon_visible() {
-            println!("[{}] unable to find portal to boss 1, abandoning run", Local::now().to_rfc2822());
-            return false;
+        let start = time::Instant::now();
+        loop {
+            if self.portal_icon_visible() {
+                break;
+            }
+
+            if start.elapsed().as_secs() > 2 {
+                println!("[{}] unable to find portal to boss 1, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
         }
 
         println!("[{}] enable animation speed hack for the warlock", Local::now().to_rfc2822());
@@ -218,6 +226,12 @@ impl Poharan {
         println!("[{}] use portal to boss 1", Local::now().to_rfc2822());
         let start = time::Instant::now();
         loop {
+            // earliest break possible is when we can move again/are out of combat
+            if self.out_of_combat() && start.elapsed().as_secs() > 1 {
+                break;
+            }
+
+            // timeout for safety
             if start.elapsed().as_secs() > 4 {
                 break;
             }
@@ -255,7 +269,7 @@ impl Poharan {
 
         let start = time::Instant::now();
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore starting window hwnd since he handles the invites
+            // ignore warlock, who is already fighting boss 1
             if hwnd.0 == self.start_hwnd.0 {
                 continue;
             }
@@ -275,8 +289,6 @@ impl Poharan {
 
         println!("[{}] wait for dynamic quest", Local::now().to_rfc2822());
         loop {
-            self.activity.check_game_activity();
-
             // Tae Jangum dead and dynamic quest started
             if self.dynamic_visible() {
                 println!("[{}] found dynamic quest", Local::now().to_rfc2822());
@@ -294,6 +306,8 @@ impl Poharan {
                 println!("[{}] ran into a timeout during Tae Jangum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
+
+            self.activity.check_game_activity();
         }
 
         println!("[{}] sleep to let warlock pick up possible loot", Local::now().to_rfc2822());
@@ -310,8 +324,6 @@ impl Poharan {
 
         println!("[{}] wait to get out of combat", Local::now().to_rfc2822());
         loop {
-            self.activity.check_game_activity();
-
             if self.out_of_combat() {
                 break;
             }
@@ -320,6 +332,8 @@ impl Poharan {
                 println!("[{}] somehow died after Tae Jungum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
+
+            self.activity.check_game_activity();
         }
 
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
@@ -329,6 +343,116 @@ impl Poharan {
     }
 
     unsafe fn move_to_bridge(&self) -> bool {
+        println!("[{}] move warlock to the bridge", Local::now().to_rfc2822());
+        send_key(VK_S, true);
+        sleep(self.get_sleep_time(5000, false));
+        send_key(VK_S, false);
+
+        send_key(VK_A, true);
+        sleep(self.get_sleep_time(4200, false));
+        send_key(VK_A, false);
+
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(10000, false));
+        send_key(VK_W, false);
+
+        send_key(VK_S, true);
+        sleep(self.get_sleep_time(3000, false));
+        send_key(VK_S, false);
+
+        send_key(VK_D, true);
+        sleep(self.get_sleep_time(13000, false));
+        send_key(VK_D, false);
+
+        println!("[{}] getting into combat for consistent walking distance", Local::now().to_rfc2822());
+        self.hotkeys_get_into_combat();
+
+        send_key(VK_A, true);
+        sleep(self.get_sleep_time(400, false));
+        send_key(VK_A, false);
+
+        println!("[{}] progressing onto the bridge", Local::now().to_rfc2822());
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(11000, false));
+        send_key(VK_W, false);
+
+        println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, who is fighting on the bridge
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+            switch_to_hwnd(hwnd.to_owned());
+
+            println!("[{}] use portal to Poharan for client {}", Local::now().to_rfc2822(), index + 1);
+            if !self.use_poharan_portal() {
+                println!("[{}] unable to use the portal to poharan for client {}, abandoning run", Local::now().to_rfc2822(), index + 1);
+                return false;
+            }
+        }
+
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, who is fighting on the bridge
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+            switch_to_hwnd(hwnd.to_owned());
+
+            println!("[{}] moving client {} to Poharan", Local::now().to_rfc2822(), index + 1);
+            self.move_to_poharan(false);
+        }
+
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                println!("[{}] warlock is out of combat", Local::now().to_rfc2822());
+                break;
+            }
+
+            if self.revive_visible() {
+                println!("[{}] died with the warlock on bridge, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+        }
+
+        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+
+        println!("[{}] moving further down the bridge", Local::now().to_rfc2822());
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(5000, false));
+        send_key(VK_W, false);
+
+        println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        println!("[{}] sleeping 2 seconds to get into combat if there are any monsters left", Local::now().to_rfc2822());
+        sleep(time::Duration::from_secs(2));
+
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                println!("[{}] warlock is out of combat", Local::now().to_rfc2822());
+                break;
+            }
+        }
+
+        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+
+        println!("[{}] moving warlock to Poharan", Local::now().to_rfc2822());
+        self.move_to_poharan(true);
 
         false
     }

@@ -4,7 +4,7 @@ use std::time;
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_RETURN, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
-use bns_utility::{get_pixel, move_mouse, send_key, send_string};
+use bns_utility::{move_mouse, send_key, send_string};
 
 use crate::{Poharan, UserInterface};
 

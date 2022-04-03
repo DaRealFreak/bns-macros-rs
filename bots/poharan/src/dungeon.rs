@@ -1,7 +1,11 @@
 use std::thread::sleep;
 use std::time;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_TAB, VK_W};
-use bns_utility::{get_pixel, send_key};
+
+use chrono::Local;
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_SHIFT, VK_TAB, VK_W};
+
+use bns_utility::{send_key, send_keys};
+
 use crate::{HotKeys, Poharan, UserInterface};
 
 pub(crate) trait Dungeon {
@@ -13,6 +17,8 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
     unsafe fn open_portal(&self, boss: u8);
+    unsafe fn use_poharan_portal(&self) -> bool;
+    unsafe fn move_to_poharan(&self, warlock: bool);
 }
 
 impl Dungeon for Poharan {
@@ -86,5 +92,61 @@ impl Dungeon for Poharan {
         send_key(VK_W, true);
         sleep(time::Duration::from_millis(50));
         send_key(VK_W, false);
+    }
+
+    unsafe fn use_poharan_portal(&self) -> bool {
+        send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
+        send_key(VK_SHIFT, false);
+        sleep(time::Duration::from_millis(350));
+        send_key(VK_A, false);
+        sleep(time::Duration::from_millis(2850));
+        send_key(VK_W, false);
+
+        let start = time::Instant::now();
+        loop {
+            if self.portal_icon_visible() {
+                break;
+            }
+
+            if start.elapsed().as_secs() > 2 {
+                println!("[{}] unable to find portal to Poharan, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+        }
+
+        println!("[{}] use portal to Poharan", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            if !self.portal_icon_visible() {
+                break;
+            }
+
+            send_key(VK_F, true);
+            sleep(time::Duration::from_millis(2));
+            send_key(VK_F, false);
+        }
+
+        true
+    }
+
+    unsafe fn move_to_poharan(&self, warlock: bool) {
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                break;
+            }
+        }
+        self.hotkeys_animation_speed_hack_enable();
+
+        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
+        send_key(VK_SHIFT, false);
+        sleep(self.get_sleep_time(35000, false));
+        if warlock {
+            // sleep additional 10 seconds for the warlock since he is further away
+            sleep(self.get_sleep_time(10000, false));
+        }
+        send_keys(vec![VK_W, VK_D], false);
     }
 }
