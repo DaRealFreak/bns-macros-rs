@@ -23,8 +23,9 @@ impl CrossServerLobby for Poharan {
                 break;
             }
 
-            // timeout check, return as failed after 20 seconds
-            if start.elapsed().as_secs() > 20 {
+            // timeout check, return as failed after 15 seconds
+            if start.elapsed().as_secs() > 15 {
+                send_keys(vec![VK_W], false);
                 return false;
             }
 

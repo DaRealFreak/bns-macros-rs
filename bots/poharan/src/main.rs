@@ -6,8 +6,8 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
-use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_S, VK_SHIFT, VK_W};
+use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
@@ -71,7 +71,6 @@ impl Poharan {
                 println!("[{}] run took {:?} seconds to complete", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
             }
             self.run_count += 1;
-
         }
 
         false
@@ -366,6 +365,14 @@ impl Poharan {
 
     unsafe fn move_to_bridge(&self) -> bool {
         println!("[{}] move warlock to the bridge", Local::now().to_rfc2822());
+
+        // move into the corner again in case we got in range of the mobs before Tae Jangum
+        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
+        send_key(VK_SHIFT, false);
+        sleep(self.get_sleep_time(5750, false));
+        send_keys(vec![VK_W, VK_D], false);
+
+        // progress onto the bridge from here on
         send_key(VK_S, true);
         sleep(self.get_sleep_time(5000, false));
         send_key(VK_S, false);
