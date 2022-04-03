@@ -91,6 +91,8 @@ impl Lobby for Poharan {
 
             send_key(VK_Y, true);
             send_key(VK_Y, false);
+
+            sleep(time::Duration::from_millis(20));
         }
 
         if had_invite {
@@ -98,13 +100,15 @@ impl Lobby for Poharan {
         }
 
         loop {
+            self.activity.check_game_activity();
+
             if !self.has_player_party_join_request() {
                 break;
             }
 
-            self.activity.check_game_activity();
             send_key(VK_Y, true);
             send_key(VK_Y, false);
+
             sleep(time::Duration::from_millis(20));
         }
     }
@@ -163,11 +167,12 @@ impl Lobby for Poharan {
         let coordinates_stage_left: Vec<i32> = position_stage_left.map(|s| s.parse::<i32>().unwrap()).collect();
 
         loop {
+            self.activity.check_game_activity();
+
             if self.stage_selected() {
                 break
             }
 
-            self.activity.check_game_activity();
             // press mouse down on the right side of the stage selection
             SetCursorPos(coordinates_stage_right[0], coordinates_stage_right[1]);
             sleep(time::Duration::from_millis(150));
@@ -197,6 +202,8 @@ impl Lobby for Poharan {
         let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
 
         loop {
+            self.activity.check_game_activity();
+
             if !self.enter_dungeon_available() {
                 break
             }

@@ -80,6 +80,7 @@ impl Poharan {
             }
 
             self.activity.check_game_activity();
+            sleep(time::Duration::from_millis(100));
         }
 
         loop {
@@ -88,6 +89,7 @@ impl Poharan {
             }
 
             self.activity.check_game_activity();
+            sleep(time::Duration::from_millis(100));
         }
     }
 
@@ -106,6 +108,7 @@ impl Poharan {
             }
 
             self.activity.check_game_activity();
+            sleep(time::Duration::from_millis(100));
         }
         println!("[{}] found lobby screen", Local::now().to_rfc2822());
 
@@ -384,7 +387,7 @@ impl Poharan {
 
         println!("[{}] progressing onto the bridge", Local::now().to_rfc2822());
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(10000, false));
+        sleep(self.get_sleep_time(11000, false));
         send_key(VK_W, false);
 
         println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
@@ -511,10 +514,12 @@ impl Poharan {
                 println!("[{}] revive visible, died to Poharan, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
+
+            sleep(time::Duration::from_secs(1));
         }
 
         println!("[{}] sleep to let warlock pick up possible loot", Local::now().to_rfc2822());
-        sleep(time::Duration::from_millis(2000));
+        sleep(time::Duration::from_millis(4000));
 
         println!("[{}] sleep to let all clients run into the return position", Local::now().to_rfc2822());
         sleep(self.get_sleep_time(6000, false));

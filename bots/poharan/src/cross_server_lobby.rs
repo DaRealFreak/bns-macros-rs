@@ -1,3 +1,4 @@
+use std::thread::sleep;
 use std::time;
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_SHIFT, VK_W};
 
@@ -16,6 +17,8 @@ impl CrossServerLobby for Poharan {
 
         let start = time::Instant::now();
         loop {
+            self.activity.check_game_activity();
+
             if self.in_loading_screen() {
                 break;
             }
@@ -25,7 +28,7 @@ impl CrossServerLobby for Poharan {
                 return false;
             }
 
-            self.activity.check_game_activity();
+            sleep(time::Duration::from_millis(100));
         }
 
         send_keys(vec![VK_W], false);

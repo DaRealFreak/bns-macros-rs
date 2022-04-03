@@ -74,9 +74,13 @@ impl Dungeon for Poharan {
 
     unsafe fn open_portal(&self, boss: u8) {
         loop {
+            self.activity.check_game_activity();
+
             if self.thrall_available() {
                 break
             }
+
+            sleep(time::Duration::from_millis(100));
         }
 
         if boss == 1 {
@@ -128,6 +132,8 @@ impl Dungeon for Poharan {
                 println!("[{}] unable to find portal to Poharan, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
+
+            sleep(time::Duration::from_millis(100));
         }
 
         println!("[{}] use portal to Poharan", Local::now().to_rfc2822());
@@ -153,6 +159,8 @@ impl Dungeon for Poharan {
             if self.out_of_combat() {
                 break;
             }
+
+            sleep(time::Duration::from_millis(100));
         }
         self.hotkeys_animation_speed_hack_enable();
 
@@ -182,6 +190,8 @@ impl Dungeon for Poharan {
             if self.out_of_combat() {
                 break;
             }
+
+            sleep(time::Duration::from_millis(100));
         }
 
         send_key(VK_W, true);
@@ -208,6 +218,8 @@ impl Dungeon for Poharan {
 
             send_keys(vec![VK_Y, VK_F], true);
             send_keys(vec![VK_Y, VK_F], false);
+
+            sleep(time::Duration::from_millis(100));
         }
 
         println!("[{}] progress dynamic reward until bonus reward selection screen", Local::now().to_rfc2822());
@@ -220,6 +232,7 @@ impl Dungeon for Poharan {
 
             send_keys(vec![VK_Y, VK_F], true);
             send_keys(vec![VK_Y, VK_F], false);
+
             sleep(time::Duration::from_millis(20));
         }
 
@@ -240,6 +253,7 @@ impl Dungeon for Poharan {
                 send_keys(vec![VK_Y, VK_N], true);
                 send_keys(vec![VK_Y, VK_N], false);
             }
+
             sleep(time::Duration::from_millis(20));
         }
 
@@ -253,6 +267,8 @@ impl Dungeon for Poharan {
 
             send_key(VK_F, true);
             send_key(VK_F, false);
+
+            sleep(time::Duration::from_millis(100));
         }
 
         true
