@@ -376,7 +376,7 @@ impl Poharan {
         send_key(VK_A, false);
 
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(10000, false));
+        sleep(self.get_sleep_time(11000, false));
         send_key(VK_W, false);
 
         send_key(VK_S, true);
