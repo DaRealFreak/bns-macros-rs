@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time;
 use windows::Win32::Foundation::{BOOL, CloseHandle, FILETIME, HWND, LPARAM};
 use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId, GetProcessTimes, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 use windows::Win32::UI::WindowsAndMessaging::{BringWindowToTop, EnumWindows, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, SetForegroundWindow, ShowWindow, SW_SHOW};
@@ -61,24 +63,31 @@ pub unsafe fn get_hwnd_creation_time(hwnd: &HWND) -> i64 {
 
 /// Switch to passed hwnd until the windows API returns it as the foreground hwnd
 pub unsafe fn switch_to_hwnd(hwnd: HWND) -> bool {
+    let start = time::Instant::now();
     while GetForegroundWindow().0 != hwnd.0 {
-        // SetForegroundWindow is not always reliable (happened multiple times in test runs) due to restrictions
-        // so we make windows think the processes are related to each other by attaching the thread ids
-        // and bring our window handle to the top before detaching the thread again
-        let window_thread_process_id = GetWindowThreadProcessId(GetForegroundWindow(), &mut 0);
-        let current_thread_id = GetCurrentThreadId();
-
-        if window_thread_process_id != current_thread_id {
-            AttachThreadInput(window_thread_process_id, current_thread_id, true);
-            BringWindowToTop(hwnd);
-            ShowWindow(hwnd, SW_SHOW);
+        if start.elapsed().as_millis() < 1500 {
             SetForegroundWindow(hwnd);
-            AttachThreadInput(window_thread_process_id, current_thread_id, false);
         } else {
-            BringWindowToTop(hwnd);
-            ShowWindow(hwnd, SW_SHOW);
-            SetForegroundWindow(hwnd);
+            // SetForegroundWindow is not always reliable (happened multiple times in test runs) due to restrictions
+            // so we make windows think the processes are related to each other by attaching the thread ids
+            // and bring our window handle to the top before detaching the thread again
+            let window_thread_process_id = GetWindowThreadProcessId(GetForegroundWindow(), &mut 0);
+            let current_thread_id = GetCurrentThreadId();
+
+            if window_thread_process_id != current_thread_id {
+                AttachThreadInput(window_thread_process_id, current_thread_id, true);
+                BringWindowToTop(hwnd);
+                ShowWindow(hwnd, SW_SHOW);
+                SetForegroundWindow(hwnd);
+                AttachThreadInput(window_thread_process_id, current_thread_id, false);
+            } else {
+                BringWindowToTop(hwnd);
+                ShowWindow(hwnd, SW_SHOW);
+                SetForegroundWindow(hwnd);
+            }
         }
+
+        sleep(time::Duration::from_millis(2));
     }
 
     true
