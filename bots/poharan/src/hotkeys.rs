@@ -22,7 +22,14 @@ pub(crate) trait HotKeys {
     unsafe fn hotkeys_fly_hack_boss_1(&self);
     unsafe fn hotkeys_fly_hack_boss_2(&self);
     unsafe fn hotkeys_fly_hack_disable(&self);
+    unsafe fn hotkeys_change_camera_to_degrees(&self, degrees: Degree);
     unsafe fn hotkeys_clip_shadow_play(&self);
+}
+
+pub enum Degree {
+    TurnTo0,
+    TurnTo90,
+    TurnTo270,
 }
 
 impl HotKeys for Poharan {
@@ -106,6 +113,19 @@ impl HotKeys for Poharan {
     unsafe fn hotkeys_fly_hack_disable(&self) {
         for _ in 0..5 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
+            sleep(time::Duration::from_millis(100));
+        }
+    }
+
+    unsafe fn hotkeys_change_camera_to_degrees(&self, degrees: Degree) {
+        let hotkey = match degrees {
+            Degree::TurnTo0 => "TurnCameraTo0Degrees",
+            Degree::TurnTo90 => "TurnCameraTo90Degrees",
+            Degree::TurnTo270 => "TurnCameraTo270Degrees",
+        };
+
+        for _ in 0..5 {
+            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), hotkey);
             sleep(time::Duration::from_millis(100));
         }
     }
