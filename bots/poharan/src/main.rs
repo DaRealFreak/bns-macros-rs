@@ -249,7 +249,6 @@ impl Poharan {
         loop {
             // earliest break possible is when we can move again/are out of combat
             if self.out_of_combat() && start.elapsed().as_secs() > 2 {
-                println!("out of combat after {} ms", start.elapsed().as_millis());
                 break;
             }
 
