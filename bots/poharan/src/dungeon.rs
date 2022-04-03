@@ -194,14 +194,13 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
-        send_key(VK_W, true);
-        sleep(self.get_sleep_time(3400, true));
+        send_keys(vec![VK_W, VK_D], true);
+        sleep(self.get_sleep_time(1500, true));
+        send_key(VK_D, false);
+        sleep(self.get_sleep_time(1500, true));
         send_key(VK_W, false);
 
-        println!("[{}] turning camera to 0 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
-
-        sleep(time::Duration::from_secs(1));
+        sleep(time::Duration::from_millis(500));
 
         if !self.exit_portal_icon_visible() {
             println!("[{}] exit portal icon not visible, abandoning run", Local::now().to_rfc2822());

@@ -30,8 +30,8 @@ pub(crate) struct Poharan {
     start_hwnd: HWND,
     activity: GameActivity,
     run_count: u16,
-    successful_runs: Vec<u16>,
-    failed_runs: Vec<u16>,
+    successful_runs: Vec<u128>,
+    failed_runs: Vec<u128>,
     run_start_timestamp: std::time::Instant,
     settings: Ini,
 }
@@ -63,10 +63,15 @@ impl Poharan {
             switch_to_hwnd(self.start_hwnd);
 
             if !self.move_to_dungeon() {
+                self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
+                println!("[{}] run failed after {:?} seconds", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
                 break;
+            } else {
+                self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
+                println!("[{}] run took {:?} seconds to complete", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
             }
+            self.run_count += 1;
 
-            println!("[{}] run took {:?} seconds to complete", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
         }
 
         false
@@ -188,9 +193,13 @@ impl Poharan {
     unsafe fn move_to_dungeon(&mut self) -> bool {
         self.run_start_timestamp = time::Instant::now();
 
+        if self.run_count > 0 {
+            println!("[{}] set camera to 0 degrees", Local::now().to_rfc2822());
+            self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
+        }
+
         println!("[{}] disable animation speed hack", Local::now().to_rfc2822());
         self.hotkeys_animation_speed_hack_disable();
-        self.hotkeys_animation_speed_hack_warlock_disable();
 
         println!("[{}] wait for loading screen", Local::now().to_rfc2822());
         self.wait_loading_screen();
@@ -548,7 +557,9 @@ impl Poharan {
             switch_to_hwnd(hwnd.to_owned());
 
             println!("[{}] leave dungeon for client {}", Local::now().to_rfc2822(), index + 1);
-            self.leave_dungeon_client();
+            if !self.leave_dungeon_client() {
+                return false;
+            }
         }
 
         true
