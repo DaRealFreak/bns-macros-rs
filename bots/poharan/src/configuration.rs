@@ -73,7 +73,7 @@ pub(crate) fn create_ini() {
         .set("PositionDynamicReward", "1628,685")
         .set("DynamicReward", "0x463E2C")
         .set("PositionBonusRewardSelection", "1614,676")
-        .set("DynamicReward", "0xBCA664");
+        .set("BonusRewardSelection", "0xBCA664");
 
     // user interface settings related to the player interactions
     conf.with_section(Some("UserInterfacePlayer"))
