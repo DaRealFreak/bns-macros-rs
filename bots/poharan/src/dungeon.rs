@@ -2,17 +2,19 @@ use std::thread::sleep;
 use std::time;
 
 use chrono::Local;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_SHIFT, VK_TAB, VK_W};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_TAB, VK_W, VK_Y};
 
 use bns_utility::{send_key, send_keys};
 
-use crate::{HotKeys, Poharan, UserInterface};
+use crate::{Degree, HotKeys, Poharan, UserInterface};
 
 pub(crate) trait Dungeon {
     unsafe fn animation_speed(&self) -> f64;
     unsafe fn animation_speed_slow(&self) -> f64;
     unsafe fn thrall_available(&self) -> bool;
     unsafe fn portal_icon_visible(&self) -> bool;
+    unsafe fn exit_portal_icon_visible(&self) -> bool;
+    unsafe fn bonus_reward_selection_visible(&self) -> bool;
     unsafe fn revive_visible(&self) -> bool;
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
@@ -20,6 +22,7 @@ pub(crate) trait Dungeon {
     unsafe fn open_portal(&self, boss: u8);
     unsafe fn use_poharan_portal(&self) -> bool;
     unsafe fn move_to_poharan(&self, warlock: bool);
+    unsafe fn leave_dungeon_client(&self) -> bool;
 }
 
 impl Dungeon for Poharan {
@@ -59,6 +62,14 @@ impl Dungeon for Poharan {
 
     unsafe fn out_of_combat(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
+    }
+
+    unsafe fn exit_portal_icon_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionExitPortalIcon", "ExitPortalIcon")
+    }
+
+    unsafe fn bonus_reward_selection_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionBonusRewardSelection", "BonusRewardSelection")
     }
 
     unsafe fn open_portal(&self, boss: u8) {
@@ -153,5 +164,97 @@ impl Dungeon for Poharan {
             sleep(self.get_sleep_time(10000, false));
         }
         send_keys(vec![VK_W, VK_D], false);
+    }
+
+    unsafe fn leave_dungeon_client(&self) -> bool {
+        println!("[{}] deactivating auto combat", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        println!("[{}] turning camera to 270 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo270);
+
+        println!("[{}] enable slow animation speed hack", Local::now().to_rfc2822());
+        self.hotkeys_slow_animation_speed_hack_enable();
+
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                break;
+            }
+        }
+
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(3400, true));
+        send_key(VK_W, false);
+
+        println!("[{}] turning camera to 0 degrees", Local::now().to_rfc2822());
+        self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
+
+        sleep(time::Duration::from_secs(1));
+
+        if !self.exit_portal_icon_visible() {
+            println!("[{}] exit portal icon not visible, abandoning run", Local::now().to_rfc2822());
+            return false;
+        }
+
+        println!("[{}] using exit portal", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            if !self.exit_portal_icon_visible() {
+                break;
+            }
+
+            send_keys(vec![VK_Y, VK_F], true);
+            send_keys(vec![VK_Y, VK_F], false);
+        }
+
+        println!("[{}] progress dynamic reward until bonus reward selection screen", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            if self.bonus_reward_selection_visible() {
+                break;
+            }
+
+            send_keys(vec![VK_Y, VK_F], true);
+            send_keys(vec![VK_Y, VK_F], false);
+            sleep(time::Duration::from_millis(20));
+        }
+
+        println!("[{}] accept/deny bonus reward", Local::now().to_rfc2822());
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if !self.bonus_reward_selection_visible() {
+                break;
+            }
+
+            if start.elapsed().as_secs() > 5 {
+                println!("[{}] timeout on bonus reward, using escape to close window", Local::now().to_rfc2822());
+                send_key(VK_ESCAPE, true);
+                send_key(VK_ESCAPE, false);
+            } else {
+                send_keys(vec![VK_Y, VK_N], true);
+                send_keys(vec![VK_Y, VK_N], false);
+            }
+            sleep(time::Duration::from_millis(20));
+        }
+
+        println!("[{}] wait for loading screen", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            if self.in_loading_screen() {
+                break;
+            }
+
+            send_key(VK_F, true);
+            send_key(VK_F, false);
+        }
+
+        true
     }
 }

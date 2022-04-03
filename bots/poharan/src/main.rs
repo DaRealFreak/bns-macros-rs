@@ -6,8 +6,8 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_S, VK_SHIFT, VK_W};
-use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
+use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
 
 use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
@@ -59,9 +59,14 @@ impl Poharan {
         self.enter_lobby();
 
         loop {
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+            switch_to_hwnd(self.start_hwnd);
+
             if !self.move_to_dungeon() {
                 break;
             }
+
+            println!("[{}] run took {:?} seconds to complete", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
         }
 
         false
@@ -70,7 +75,7 @@ impl Poharan {
     /// wait until we are in a loading screen first and then wait until we are out of the loading screen
     unsafe fn wait_loading_screen(&self) {
         loop {
-            if self.in_loading_screen() {
+            if !self.in_loading_screen() {
                 break;
             }
 
@@ -180,6 +185,10 @@ impl Poharan {
     unsafe fn move_to_dungeon(&mut self) -> bool {
         self.run_start_timestamp = time::Instant::now();
 
+        println!("[{}] disable animation speed hack", Local::now().to_rfc2822());
+        self.hotkeys_animation_speed_hack_disable();
+        self.hotkeys_animation_speed_hack_warlock_disable();
+
         println!("[{}] wait for loading screen", Local::now().to_rfc2822());
         self.wait_loading_screen();
 
@@ -227,19 +236,21 @@ impl Poharan {
         let start = time::Instant::now();
         loop {
             // earliest break possible is when we can move again/are out of combat
-            if self.out_of_combat() && start.elapsed().as_secs() > 1 {
+            if self.out_of_combat() && start.elapsed().as_secs() > 2 {
+                println!("out of combat after {} ms", start.elapsed().as_millis());
                 break;
             }
 
             // timeout for safety
-            if start.elapsed().as_secs() > 4 {
+            if start.elapsed().as_secs() > 5 {
                 break;
             }
 
-            send_key(VK_F, true);
-            sleep(time::Duration::from_millis(2));
-            send_key(VK_F, false);
-            self.hotkeys_animation_speed_hack_warlock_enable();
+            // continue spamming f to take the portal if the previous f was ignored
+            if self.portal_icon_visible() {
+                send_key(VK_F, true);
+                send_key(VK_F, false);
+            }
         }
 
         println!("[{}] get into combat for fixed movement speed", Local::now().to_rfc2822());
@@ -361,7 +372,7 @@ impl Poharan {
         send_key(VK_S, false);
 
         send_key(VK_D, true);
-        sleep(self.get_sleep_time(13000, false));
+        sleep(self.get_sleep_time(12000, false));
         send_key(VK_D, false);
 
         println!("[{}] getting into combat for consistent walking distance", Local::now().to_rfc2822());
@@ -373,7 +384,7 @@ impl Poharan {
 
         println!("[{}] progressing onto the bridge", Local::now().to_rfc2822());
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(11000, false));
+        sleep(self.get_sleep_time(10000, false));
         send_key(VK_W, false);
 
         println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
@@ -394,6 +405,9 @@ impl Poharan {
                 return false;
             }
         }
+
+        // sleep a second for the game to put the client into combat (while wind stride animation)
+        sleep(time::Duration::from_secs(1));
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             // ignore warlock, who is fighting on the bridge
@@ -425,12 +439,15 @@ impl Poharan {
             }
         }
 
+        println!("[{}] deactivating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
         self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
 
         println!("[{}] moving further down the bridge", Local::now().to_rfc2822());
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(5000, false));
+        sleep(self.get_sleep_time(7000, false));
         send_key(VK_W, false);
 
         println!("[{}] activating auto combat on the warlock", Local::now().to_rfc2822());
@@ -447,6 +464,9 @@ impl Poharan {
                 break;
             }
         }
+
+        println!("[{}] deactivating auto combat on the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
 
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
         self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
@@ -506,9 +526,27 @@ impl Poharan {
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
         switch_to_hwnd(self.start_hwnd);
 
+        println!("[{}] disable animation speed hack for the warlock", Local::now().to_rfc2822());
         self.hotkeys_animation_speed_hack_warlock_disable();
 
-        false
+        if !self.leave_dungeon_client() {
+            return false;
+        }
+
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, who already left the dungeon
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+            switch_to_hwnd(hwnd.to_owned());
+
+            println!("[{}] leave dungeon for client {}", Local::now().to_rfc2822(), index + 1);
+            self.leave_dungeon_client();
+        }
+
+        true
     }
 
     unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
