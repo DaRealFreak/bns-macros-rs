@@ -71,7 +71,7 @@ impl HotKeys for Poharan {
     unsafe fn hotkeys_animation_speed_hack_disable(&self) {
         for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOff");
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(30));
         }
     }
 
@@ -92,7 +92,7 @@ impl HotKeys for Poharan {
     unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self) {
         for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOff");
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(30));
         }
     }
 
@@ -126,7 +126,7 @@ impl HotKeys for Poharan {
 
         for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), hotkey);
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(50));
         }
     }
 
