@@ -297,7 +297,7 @@ impl Poharan {
 
             // died during the fight
             if self.revive_visible() {
-                println!("[{}] revive visible, abandoning run", Local::now().to_rfc2822());
+                println!("[{}] revive visible, died to Tae Jangum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
 
@@ -329,7 +329,7 @@ impl Poharan {
             }
 
             if self.revive_visible() {
-                println!("[{}] somehow died after Tae Jungum, abandoning run", Local::now().to_rfc2822());
+                println!("[{}] somehow died after Tae Jangum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
 
@@ -453,6 +453,60 @@ impl Poharan {
 
         println!("[{}] moving warlock to Poharan", Local::now().to_rfc2822());
         self.move_to_poharan(true);
+
+        self.fight_boss_2()
+    }
+
+    unsafe fn fight_boss_2(&self) -> bool {
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+            switch_to_hwnd(hwnd.to_owned());
+
+            println!("[{}] activating auto combat for client {}", Local::now().to_rfc2822(), index + 1);
+            self.hotkeys_auto_combat_toggle();
+        }
+
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        println!("[{}] activating auto combat for the warlock", Local::now().to_rfc2822());
+        self.hotkeys_auto_combat_toggle();
+
+        println!("[{}] wait for dynamic reward", Local::now().to_rfc2822());
+        loop {
+            self.activity.check_game_activity();
+
+            // Poharan is dead and dynamic reward is visible
+            if self.dynamic_reward_visible() {
+                println!("[{}] found dynamic reward", Local::now().to_rfc2822());
+                break;
+            }
+
+            if self.revive_visible() {
+                println!("[{}] revive visible, died to Poharan, abandoning run", Local::now().to_rfc2822());
+                return false;
+            }
+        }
+
+        println!("[{}] sleep to let warlock pick up possible loot", Local::now().to_rfc2822());
+        sleep(time::Duration::from_millis(2000));
+
+        println!("[{}] sleep to let all clients run into the return position", Local::now().to_rfc2822());
+        sleep(self.get_sleep_time(6000, false));
+
+        self.leave_dungeon()
+    }
+
+    unsafe fn leave_dungeon(&self) -> bool {
+        println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        self.hotkeys_animation_speed_hack_warlock_disable();
 
         false
     }

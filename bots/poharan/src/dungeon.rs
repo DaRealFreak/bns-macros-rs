@@ -15,6 +15,7 @@ pub(crate) trait Dungeon {
     unsafe fn portal_icon_visible(&self) -> bool;
     unsafe fn revive_visible(&self) -> bool;
     unsafe fn dynamic_visible(&self) -> bool;
+    unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
     unsafe fn open_portal(&self, boss: u8);
     unsafe fn use_poharan_portal(&self) -> bool;
@@ -50,6 +51,10 @@ impl Dungeon for Poharan {
 
     unsafe fn dynamic_visible(&self) -> bool {
         self.pixel_matches("UserInterfaceDungeon", "PositionDynamicQuest", "DynamicQuest")
+    }
+
+    unsafe fn dynamic_reward_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionDynamicReward", "DynamicReward")
     }
 
     unsafe fn out_of_combat(&self) -> bool {
