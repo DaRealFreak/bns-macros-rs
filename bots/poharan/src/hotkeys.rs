@@ -97,21 +97,21 @@ impl HotKeys for Poharan {
     }
 
     unsafe fn hotkeys_fly_hack_boss_1(&self) {
-        for _ in 0..5 {
+        for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss1");
             sleep(time::Duration::from_millis(100));
         }
     }
 
     unsafe fn hotkeys_fly_hack_boss_2(&self) {
-        for _ in 0..5 {
+        for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss2");
             sleep(time::Duration::from_millis(100));
         }
     }
 
     unsafe fn hotkeys_fly_hack_disable(&self) {
-        for _ in 0..5 {
+        for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
             sleep(time::Duration::from_millis(100));
         }
@@ -124,7 +124,7 @@ impl HotKeys for Poharan {
             Degree::TurnTo270 => "TurnCameraTo270Degrees",
         };
 
-        for _ in 0..5 {
+        for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), hotkey);
             sleep(time::Duration::from_millis(100));
         }
