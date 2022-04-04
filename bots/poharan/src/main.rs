@@ -290,8 +290,8 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_millis() > 2000 {
-                println!("[{}] unable to find portal to boss 1, abandoning run", Local::now().to_rfc2822());
+            if start.elapsed().as_millis() > 3000 {
+                println!("[{}] unable to find portal to Tae Jangum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
         }
