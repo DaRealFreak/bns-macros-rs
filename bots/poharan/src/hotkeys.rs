@@ -126,7 +126,7 @@ impl HotKeys for Poharan {
 
         for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), hotkey);
-            sleep(time::Duration::from_millis(90));
+            sleep(time::Duration::from_millis(150));
         }
     }
 

@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
@@ -175,8 +174,8 @@ impl Poharan {
             }
 
             if !self.is_player_ready() {
-                println!("[{}] player is not ready, exiting script", Local::now().to_rfc2822());
-                exit(-1);
+                println!("[{}] player could not ready up, re-entering lobby for invites", Local::now().to_rfc2822());
+                return self.enter_lobby();
             }
         }
 
@@ -593,14 +592,14 @@ impl Poharan {
         let fail_rate = (self.failed_runs.len() as u128 / self.run_count) as f64;
         let success_rate = 1.0 - fail_rate as f64;
         let mut sum: u128 = self.successful_runs.iter().sum();
-        let average_run_time_success: u128 = sum / self.successful_runs.len() as u128;
+        let average_run_time_success: u128 = sum / (if self.successful_runs.len() > 0 { self.successful_runs.len() } else { 1 }) as u128;
         sum = self.failed_runs.iter().sum();
-        let average_run_time_fail: u128 = sum / self.failed_runs.len() as u128;
+        let average_run_time_fail: u128 = sum / (if self.failed_runs.len() > 0 { self.failed_runs.len() } else { 1 }) as u128;
 
         let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
         let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
 
-        println!("[{}] runs done: {} (died in {} out of {} runs ({}%), average run time: {} ms", Local::now().to_rfc2822(), self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success);
+        println!("[{}] runs done: {} (died in {} out of {} runs ({:.2}%), average run time: {:.2} seconds", Local::now().to_rfc2822(), self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
         println!("[{}] expected runs per hour: {}", Local::now().to_rfc2822(), expected_successful_runs_per_hour);
     }
 

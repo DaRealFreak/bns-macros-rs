@@ -122,8 +122,14 @@ impl Lobby for Poharan {
         let position_ready = settings.get("PositionReady").unwrap().split(",");
         let res: Vec<i32> = position_ready.map(|s| s.parse::<i32>().unwrap()).collect();
 
+        let start = time::Instant::now();
         while !self.is_player_ready() {
             self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 3 {
+                break;
+            }
+
             SetCursorPos(res[0], res[1]);
             sleep(time::Duration::from_millis(50));
             move_mouse(res[0], res[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
