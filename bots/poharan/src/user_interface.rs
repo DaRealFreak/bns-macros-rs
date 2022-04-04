@@ -1,4 +1,8 @@
-use bns_utility::get_pixel;
+use std::thread::sleep;
+use std::time;
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
+use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
+use bns_utility::{get_pixel, move_mouse};
 
 use crate::{Lobby, Poharan};
 
@@ -6,6 +10,7 @@ pub(crate) trait UserInterface {
     unsafe fn pixel_matches(&self, section: &str, position_setting: &str, color_setting: &str) -> bool;
     unsafe fn in_loading_screen(&self) -> bool;
     unsafe fn out_of_loading_screen(&self) -> bool;
+    unsafe fn menu_exit(&self);
 }
 
 impl UserInterface for Poharan {
@@ -39,5 +44,16 @@ impl UserInterface for Poharan {
         }
 
         self.pixel_matches("UserInterfaceGeneral", "PositionOutOfLoadingScreen", "OutOfLoadingScreen")
+    }
+
+    unsafe fn menu_exit(&self) {
+        let settings = self.settings.section(Some("UserInterfaceGeneral")).unwrap();
+        let position_enter = settings.get("PositionExit").unwrap().split(",");
+        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
+        sleep(time::Duration::from_millis(50));
+        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
     }
 }

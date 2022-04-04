@@ -6,7 +6,7 @@ use std::time;
 use chrono::Local;
 use ini::Ini;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_F, VK_S, VK_SHIFT, VK_W};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -29,7 +29,7 @@ mod user_interface;
 pub(crate) struct Poharan {
     start_hwnd: HWND,
     activity: GameActivity,
-    run_count: u16,
+    run_count: u128,
     successful_runs: Vec<u128>,
     failed_runs: Vec<u128>,
     run_start_timestamp: std::time::Instant,
@@ -65,15 +65,33 @@ impl Poharan {
             if !self.move_to_dungeon() {
                 self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
                 println!("[{}] run failed after {:?} seconds", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
-                break;
+
+                println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+                switch_to_hwnd(self.start_hwnd);
+                println!("[{}] starting fail safe for the warlock", Local::now().to_rfc2822());
+                self.fail_save();
+
+                for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+                    // ignore warlock, who already exited to the lobby
+                    if hwnd.0 == self.start_hwnd.0 {
+                        continue;
+                    }
+
+                    println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
+                    switch_to_hwnd(hwnd.to_owned());
+
+                    println!("[{}] starting fail safe for client {}", Local::now().to_rfc2822(), index + 1);
+                    self.fail_save();
+                }
+
+                self.enter_lobby();
             } else {
                 self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
                 println!("[{}] run took {:?} seconds to complete", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
             }
             self.run_count += 1;
+            self.log_statistics();
         }
-
-        false
     }
 
     /// wait until we are in a loading screen first and then wait until we are out of the loading screen
@@ -569,6 +587,53 @@ impl Poharan {
         }
 
         true
+    }
+
+    fn log_statistics(&self) {
+        let fail_rate = (self.failed_runs.len() as u128 / self.run_count) as f64;
+        let success_rate = 1.0 - fail_rate as f64;
+        let mut sum: u128 = self.successful_runs.iter().sum();
+        let average_run_time_success: u128 = sum / self.successful_runs.len() as u128;
+        sum = self.failed_runs.iter().sum();
+        let average_run_time_fail: u128 = sum / self.failed_runs.len() as u128;
+
+        let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
+        let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
+
+        println!("[{}] runs done: {} (died in {} out of {} runs ({}%), average run time: {} ms", Local::now().to_rfc2822(), self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success);
+        println!("[{}] expected runs per hour: {}", Local::now().to_rfc2822(), expected_successful_runs_per_hour);
+    }
+
+    unsafe fn fail_save(&self) {
+        if self.in_loading_screen() {
+            println!("[{}] wait out loading screen", Local::now().to_rfc2822());
+        }
+
+        loop {
+            if !self.in_loading_screen() {
+                break;
+            }
+
+            sleep(time::Duration::from_millis(100));
+        }
+
+        loop {
+            self.activity.check_game_activity();
+
+            if self.in_f8_lobby() || self.in_loading_screen() {
+                break;
+            }
+
+            // send every possibly required key to get out of quest windows/dialogues
+            send_keys(vec![VK_Y, VK_N, VK_F], true);
+            send_keys(vec![VK_Y, VK_N, VK_F], false);
+            sleep(time::Duration::from_millis(150));
+
+            send_key(VK_ESCAPE, true);
+            send_key(VK_ESCAPE, false);
+            sleep(time::Duration::from_millis(500));
+            self.menu_exit();
+        }
     }
 
     unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
