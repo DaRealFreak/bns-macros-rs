@@ -68,7 +68,7 @@ impl Poharan {
                 println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
                 switch_to_hwnd(self.start_hwnd);
                 println!("[{}] starting fail safe for the warlock", Local::now().to_rfc2822());
-                self.fail_save();
+                self.fail_safe();
 
                 for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
                     // ignore warlock, who already exited to the lobby
@@ -80,7 +80,7 @@ impl Poharan {
                     switch_to_hwnd(hwnd.to_owned());
 
                     println!("[{}] starting fail safe for client {}", Local::now().to_rfc2822(), index + 1);
-                    self.fail_save();
+                    self.fail_safe();
                 }
 
                 self.enter_lobby();
@@ -603,7 +603,7 @@ impl Poharan {
         println!("[{}] expected runs per hour: {}", Local::now().to_rfc2822(), expected_successful_runs_per_hour);
     }
 
-    unsafe fn fail_save(&self) {
+    unsafe fn fail_safe(&self) {
         if self.in_loading_screen() {
             println!("[{}] wait out loading screen", Local::now().to_rfc2822());
         }
@@ -624,10 +624,18 @@ impl Poharan {
             }
 
             // send every possibly required key to get out of quest windows/dialogues
+            for _ in 0..10 {
+                // spam Y and F more often before any N key interaction than N to accept quests
+                send_keys(vec![VK_Y, VK_F], true);
+                send_keys(vec![VK_Y, VK_F], false);
+                sleep(time::Duration::from_millis(100));
+            }
+
             send_keys(vec![VK_Y, VK_N, VK_F], true);
             send_keys(vec![VK_Y, VK_N, VK_F], false);
             sleep(time::Duration::from_millis(150));
 
+            // open menu and click on exit
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
@@ -646,7 +654,7 @@ impl Poharan {
 
 fn main() {
     unsafe {
-        let mut test = Poharan::new();
-        test.start();
+        let mut poharan = Poharan::new();
+        poharan.start();
     }
 }
