@@ -591,7 +591,7 @@ impl Poharan {
     }
 
     fn log_statistics(&self) {
-        let fail_rate = (self.failed_runs.len() as u128 / self.run_count) as f64;
+        let fail_rate = (self.failed_runs.len() as f64 / self.run_count as f64);
         let success_rate = 1.0 - fail_rate as f64;
         let mut sum: u128 = self.successful_runs.iter().sum();
         let average_run_time_success: u128 = sum / (if self.successful_runs.len() > 0 { self.successful_runs.len() } else { 1 }) as u128;
