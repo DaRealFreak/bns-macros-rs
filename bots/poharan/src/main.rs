@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::process::exit;
 use std::thread::sleep;
 use std::time;
 
@@ -59,7 +60,10 @@ impl Poharan {
 
         loop {
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-            switch_to_hwnd(self.start_hwnd);
+            if !switch_to_hwnd(self.start_hwnd) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+                exit(-1);
+            }
 
             if !self.move_to_dungeon() {
                 self.hotkeys_clip_shadow_play();
@@ -68,7 +72,11 @@ impl Poharan {
                 println!("[{}] run failed after {:?} seconds", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
 
                 println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-                switch_to_hwnd(self.start_hwnd);
+                if !switch_to_hwnd(self.start_hwnd) {
+                    println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+                    exit(-1);
+                }
+
                 println!("[{}] starting fail safe for the warlock", Local::now().to_rfc2822());
                 self.fail_safe();
 
@@ -79,7 +87,10 @@ impl Poharan {
                     }
 
                     println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-                    switch_to_hwnd(hwnd.to_owned());
+                    if !switch_to_hwnd(hwnd.to_owned()) {
+                        println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                        exit(-1);
+                    }
 
                     println!("[{}] starting fail safe for client {}", Local::now().to_rfc2822(), index + 1);
                     self.fail_safe();
@@ -123,7 +134,11 @@ impl Poharan {
         println!("[{}] entering Lobby", Local::now().to_rfc2822());
 
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
+
         println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
         loop {
             if self.in_f8_lobby() {
@@ -154,7 +169,11 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd);
+            if !switch_to_hwnd(hwnd) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
+
             println!("[{}] waiting for lobby screen", Local::now().to_rfc2822());
             loop {
                 if self.in_f8_lobby() {
@@ -182,7 +201,10 @@ impl Poharan {
         }
 
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
 
         println!("[{}] selecting dungeon", Local::now().to_rfc2822());
         self.select_dungeon();
@@ -315,7 +337,10 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd.to_owned());
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
 
             println!("[{}] running client {} into the dungeon", Local::now().to_rfc2822(), index + 1);
             if !self.run_into_dungeon() {
@@ -325,7 +350,10 @@ impl Poharan {
         }
 
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
 
         println!("[{}] wait for dynamic quest", Local::now().to_rfc2822());
         loop {
@@ -434,7 +462,10 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd.to_owned());
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
 
             println!("[{}] use portal to Poharan for client {}", Local::now().to_rfc2822(), index + 1);
             if !self.use_poharan_portal() {
@@ -453,14 +484,20 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd.to_owned());
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
 
             println!("[{}] moving client {} to Poharan", Local::now().to_rfc2822(), index + 1);
             self.move_to_poharan(false);
         }
 
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
 
         loop {
             self.activity.check_game_activity();
@@ -522,14 +559,20 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd.to_owned());
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
 
             println!("[{}] activating auto combat for client {}", Local::now().to_rfc2822(), index + 1);
             self.hotkeys_auto_combat_toggle();
         }
 
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
 
         println!("[{}] activating auto combat for the warlock", Local::now().to_rfc2822());
         self.hotkeys_auto_combat_toggle();
@@ -563,7 +606,10 @@ impl Poharan {
 
     unsafe fn leave_dungeon(&self) -> bool {
         println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), self.start_hwnd);
-        switch_to_hwnd(self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), self.start_hwnd);
+            exit(-1);
+        }
 
         println!("[{}] disable animation speed hack for the warlock", Local::now().to_rfc2822());
         self.hotkeys_animation_speed_hack_warlock_disable();
@@ -579,7 +625,10 @@ impl Poharan {
             }
 
             println!("[{}] switching to window handle {:?}", Local::now().to_rfc2822(), hwnd);
-            switch_to_hwnd(hwnd.to_owned());
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                println!("[{}] unable to switch to window handle {:?}, game probably crashed, exiting", Local::now().to_rfc2822(), hwnd);
+                exit(-1);
+            }
 
             println!("[{}] leave dungeon for client {}", Local::now().to_rfc2822(), index + 1);
             if !self.leave_dungeon_client(false) {
@@ -591,7 +640,7 @@ impl Poharan {
     }
 
     fn log_statistics(&self) {
-        let fail_rate = (self.failed_runs.len() as f64 / self.run_count as f64);
+        let fail_rate = self.failed_runs.len() as f64 / self.run_count as f64;
         let success_rate = 1.0 - fail_rate as f64;
         let mut sum: u128 = self.successful_runs.iter().sum();
         let average_run_time_success: u128 = sum / (if self.successful_runs.len() > 0 { self.successful_runs.len() } else { 1 }) as u128;

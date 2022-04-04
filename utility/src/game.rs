@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time;
 use windows::Win32::Foundation::{BOOL, CloseHandle, FILETIME, HWND, LPARAM};
 use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId, GetProcessTimes, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
-use windows::Win32::UI::WindowsAndMessaging::{BringWindowToTop, EnumWindows, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, SetForegroundWindow, ShowWindow, SW_SHOW};
+use windows::Win32::UI::WindowsAndMessaging::{BringWindowToTop, EnumWindows, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId, IsWindow, SetForegroundWindow, ShowWindow, SW_SHOW};
 
 static mut GAME_TITLE: Option<String> = None;
 static mut GAME_HWNDS: Vec<HWND> = vec![];
@@ -85,6 +85,11 @@ pub unsafe fn switch_to_hwnd(hwnd: HWND) -> bool {
                 ShowWindow(hwnd, SW_SHOW);
                 SetForegroundWindow(hwnd);
             }
+        }
+
+        // game probably crashed
+        if !IsWindow(hwnd).as_bool() {
+            return false;
         }
 
         sleep(time::Duration::from_millis(2));
