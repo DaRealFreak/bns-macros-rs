@@ -11,7 +11,7 @@ use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
-use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, switch_to_hwnd};
+use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, get_window_title_by_hwnd, switch_to_hwnd};
 
 use crate::cross_server_lobby::CrossServerLobby;
 use crate::dungeon::Dungeon;
@@ -45,7 +45,7 @@ impl Poharan {
         let test = Ini::load_from_file("configuration/poharan.ini").unwrap();
 
         Poharan {
-            start_hwnd: GetForegroundWindow(),
+            start_hwnd: HWND(0),
             activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
             successful_runs: vec![],
@@ -56,6 +56,14 @@ impl Poharan {
     }
 
     unsafe fn start(&mut self) -> bool {
+        println!("[{}] waiting until game window is visible", Local::now().to_rfc2822());
+        while get_window_title_by_hwnd(GetForegroundWindow()) != self.activity.title().to_string() {
+            sleep(time::Duration::from_millis(100));
+        }
+
+        self.start_hwnd = GetForegroundWindow();
+        println!("[{}] game window found, settings start HWND to {:?}", Local::now().to_rfc2822(), self.start_hwnd);
+
         self.enter_lobby();
 
         loop {
@@ -282,7 +290,7 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_secs() > 2 {
+            if start.elapsed().as_millis() > 2000 {
                 println!("[{}] unable to find portal to boss 1, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
@@ -397,8 +405,10 @@ impl Poharan {
         println!("[{}] opening portal to boss 2", Local::now().to_rfc2822());
         self.open_portal(2);
 
-        println!("[{}] wait to get out of combat", Local::now().to_rfc2822());
+        println!("[{}] wait to get out of combat and set camera to 90 degrees", Local::now().to_rfc2822());
         loop {
+            self.activity.check_game_activity();
+
             if self.out_of_combat() {
                 break;
             }
@@ -408,11 +418,9 @@ impl Poharan {
                 return false;
             }
 
-            self.activity.check_game_activity();
+            self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+            sleep(time::Duration::from_millis(100));
         }
-
-        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
 
         self.move_to_bridge()
     }
@@ -711,9 +719,6 @@ impl Poharan {
 }
 
 fn main() {
-    println!("[{}] waiting 5 seconds before starting poharan farm", Local::now().to_rfc2822());
-    sleep(time::Duration::from_secs(5));
-
     unsafe {
         let mut poharan = Poharan::new();
         poharan.start();
