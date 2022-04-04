@@ -49,6 +49,14 @@ impl Dungeon for Poharan {
         self.pixel_matches("UserInterfaceDungeon", "PositionPortalIcon", "PortalIcon")
     }
 
+    unsafe fn exit_portal_icon_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionExitPortalIcon", "ExitPortalIcon")
+    }
+
+    unsafe fn bonus_reward_selection_visible(&self) -> bool {
+        self.pixel_matches("UserInterfaceDungeon", "PositionBonusRewardSelection", "BonusRewardSelection")
+    }
+
     unsafe fn revive_visible(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionReviveVisible", "ReviveVisible")
     }
@@ -63,14 +71,6 @@ impl Dungeon for Poharan {
 
     unsafe fn out_of_combat(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
-    }
-
-    unsafe fn exit_portal_icon_visible(&self) -> bool {
-        self.pixel_matches("UserInterfaceDungeon", "PositionExitPortalIcon", "ExitPortalIcon")
-    }
-
-    unsafe fn bonus_reward_selection_visible(&self) -> bool {
-        self.pixel_matches("UserInterfaceDungeon", "PositionBonusRewardSelection", "BonusRewardSelection")
     }
 
     unsafe fn open_portal(&self, boss: u8) {
