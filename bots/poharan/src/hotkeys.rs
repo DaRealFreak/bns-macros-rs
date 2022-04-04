@@ -97,23 +97,23 @@ impl HotKeys for Poharan {
     }
 
     unsafe fn hotkeys_fly_hack_boss_1(&self) {
-        for _ in 0..10 {
+        for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss1");
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(150));
         }
     }
 
     unsafe fn hotkeys_fly_hack_boss_2(&self) {
-        for _ in 0..10 {
+        for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "FlyHackBoss2");
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(150));
         }
     }
 
     unsafe fn hotkeys_fly_hack_disable(&self) {
-        for _ in 0..10 {
+        for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DisableFlyHack");
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(150));
         }
     }
 
