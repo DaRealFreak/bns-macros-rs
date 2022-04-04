@@ -34,6 +34,15 @@ pub unsafe fn find_window_hwnds_by_name(name: &str) -> Vec<HWND> {
     GAME_HWNDS.clone()
 }
 
+/// Retrieve window title by passed HWND
+pub unsafe fn get_window_title_by_hwnd(hwnd: HWND) -> String {
+    let mut buf: [u16; 1024] = [0; 1024];
+    GetWindowTextW(hwnd, &mut buf);
+
+    let title = String::from_utf16_lossy(buf.as_slice());
+    title.trim_matches(char::from(0)).to_string()
+}
+
 /// Find window HWNDs based on the window title, sorted by the process creation time (ascending)
 pub unsafe fn find_window_hwnds_by_name_sorted_creation_time(name: &str) -> Vec<HWND> {
     let mut hwnds = find_window_hwnds_by_name(name);
