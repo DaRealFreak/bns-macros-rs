@@ -13,7 +13,7 @@ pub unsafe fn find_window_hwnds_by_name(name: &str) -> Vec<HWND> {
     GAME_HWNDS = vec![];
     GAME_TITLE = Some(String::from(name));
 
-    unsafe extern "system" fn enum_test(hwnd: HWND, _param1: LPARAM) -> BOOL {
+    unsafe extern "system" fn enum_windows(hwnd: HWND, _param1: LPARAM) -> BOOL {
         let mut buf: [u16; 1024] = [0; 1024];
         GetWindowTextW(hwnd, &mut buf);
 
@@ -29,7 +29,7 @@ pub unsafe fn find_window_hwnds_by_name(name: &str) -> Vec<HWND> {
         BOOL(1)
     }
 
-    EnumWindows(Some(enum_test), LPARAM::default());
+    EnumWindows(Some(enum_windows), LPARAM::default());
 
     GAME_HWNDS.clone()
 }
