@@ -218,9 +218,16 @@ impl Poharan {
         println!("[{}] enable cheat engine speed hack", Local::now().to_rfc2822());
         self.hotkeys_cheat_engine_speed_hack_enable();
 
+        println!("[{}] wait for the loading screen of moving to the dungeon", Local::now().to_rfc2822());
+        let start = time::Instant::now();
         loop {
             if self.in_loading_screen() {
                 break;
+            }
+
+            if start.elapsed().as_secs() > 7 {
+                println!("[{}] timeout waiting for the loading screen, reentering lobby", Local::now().to_rfc2822());
+                return self.enter_lobby();
             }
 
             self.activity.check_game_activity();
