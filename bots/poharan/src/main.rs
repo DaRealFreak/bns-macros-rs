@@ -62,6 +62,8 @@ impl Poharan {
             switch_to_hwnd(self.start_hwnd);
 
             if !self.move_to_dungeon() {
+                self.hotkeys_clip_shadow_play();
+
                 self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
                 println!("[{}] run failed after {:?} seconds", Local::now().to_rfc2822(), self.run_start_timestamp.elapsed().as_secs());
 
@@ -653,6 +655,9 @@ impl Poharan {
 }
 
 fn main() {
+    println!("[{}] waiting 5 seconds before starting poharan farm", Local::now().to_rfc2822());
+    sleep(time::Duration::from_secs(5));
+
     unsafe {
         let mut poharan = Poharan::new();
         poharan.start();
