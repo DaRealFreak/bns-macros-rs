@@ -393,8 +393,8 @@ impl Poharan {
             self.activity.check_game_activity();
         }
 
-        println!("[{}] sleep to let warlock pick up possible loot", Local::now().to_rfc2822());
-        sleep(time::Duration::from_millis(2000));
+        println!("[{}] sleep to let warlock pick up possible loot or finish leftover mobs", Local::now().to_rfc2822());
+        sleep(time::Duration::from_millis(4000));
 
         println!("[{}] sleep to let warlock run into the return position", Local::now().to_rfc2822());
         sleep(self.get_sleep_time(6000, false));
