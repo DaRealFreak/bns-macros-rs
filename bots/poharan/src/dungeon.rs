@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use chrono::Local;
+use log::{info, warn};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_TAB, VK_W, VK_Y};
 
 use bns_utility::{send_key, send_keys};
@@ -116,9 +116,9 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn use_poharan_portal(&self) -> bool {
-        println!("[{}] turning camera to 0 degrees", Local::now().to_rfc2822());
+        info!("turning camera to 0 degrees");
         if !self.change_camera_to_degrees(Degree::TurnTo0) {
-            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            warn!("unable to reset camera, abandoning run");
             return false
         }
 
@@ -136,14 +136,14 @@ impl Dungeon for Poharan {
             }
 
             if start.elapsed().as_secs() > 2 {
-                println!("[{}] unable to find portal to Poharan, abandoning run", Local::now().to_rfc2822());
+                warn!("unable to find portal to Poharan, abandoning run");
                 return false;
             }
 
             sleep(time::Duration::from_millis(100));
         }
 
-        println!("[{}] use portal to Poharan", Local::now().to_rfc2822());
+        info!("use portal to Poharan");
         loop {
             self.activity.check_game_activity();
 
@@ -182,16 +182,16 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn leave_dungeon_client(&self, warlock: bool) -> bool {
-        println!("[{}] deactivating auto combat", Local::now().to_rfc2822());
+        info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 
-        println!("[{}] turning camera to 270 degrees", Local::now().to_rfc2822());
+        info!("turning camera to 270 degrees");
         if !self.change_camera_to_degrees(Degree::TurnTo270) {
-            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            warn!("unable to reset camera, abandoning run");
             return false
         }
 
-        println!("[{}] enable slow animation speed hack", Local::now().to_rfc2822());
+        info!("enable slow animation speed hack");
         self.hotkeys_slow_animation_speed_hack_enable();
 
         loop {
@@ -214,17 +214,17 @@ impl Dungeon for Poharan {
 
         if !self.exit_portal_icon_visible() {
             if warlock {
-                println!("[{}] exit portal icon not visible, abandoning run", Local::now().to_rfc2822());
+                warn!("exit portal icon not visible, abandoning run");
                 return false;
             } else {
-                println!("[{}] probably dropped something from Tae Jangum, trying second route", Local::now().to_rfc2822());
+                info!("probably dropped something from Tae Jangum, trying second route");
                 if !self.leave_dungeon_client_b1_drop_route() {
                     return false;
                 }
             }
         }
 
-        println!("[{}] using exit portal", Local::now().to_rfc2822());
+        info!("using exit portal");
         loop {
             self.activity.check_game_activity();
 
@@ -238,7 +238,7 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
-        println!("[{}] progress dynamic reward until bonus reward selection screen", Local::now().to_rfc2822());
+        info!("progress dynamic reward until bonus reward selection screen");
         loop {
             self.activity.check_game_activity();
 
@@ -252,7 +252,7 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(20));
         }
 
-        println!("[{}] accept/deny bonus reward", Local::now().to_rfc2822());
+        info!("accept/deny bonus reward");
         let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
@@ -262,7 +262,7 @@ impl Dungeon for Poharan {
             }
 
             if start.elapsed().as_secs() > 5 {
-                println!("[{}] timeout on bonus reward, using escape to close window", Local::now().to_rfc2822());
+                warn!("timeout on bonus reward, using escape to close window");
                 send_key(VK_ESCAPE, true);
                 send_key(VK_ESCAPE, false);
             } else {
@@ -273,7 +273,7 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(20));
         }
 
-        println!("[{}] wait for loading screen", Local::now().to_rfc2822());
+        info!("wait for loading screen");
         loop {
             self.activity.check_game_activity();
 
@@ -291,9 +291,9 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool {
-        println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
+        info!("turning camera to 90 degrees");
         if !self.change_camera_to_degrees(Degree::TurnTo90) {
-            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            warn!("unable to reset camera, abandoning run");
             return false
         }
 

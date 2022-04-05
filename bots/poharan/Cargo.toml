@@ -16,7 +16,7 @@ chrono = "0.4.19"
 rust-ini = "0.18"
 bns-utility = { path = "../../utility" }
 log = "0.4.16"
-log4rs = "1.0.0"
+simplelog = "0.11.2"
 
 [dependencies.windows]
 version = "0.34.0"
