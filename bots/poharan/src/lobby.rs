@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_RETURN, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, VK_RETURN, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::{move_mouse, send_key, send_string};
@@ -181,21 +181,21 @@ impl Lobby for Poharan {
 
             // press mouse down on the right side of the stage selection
             SetCursorPos(coordinates_stage_right[0], coordinates_stage_right[1]);
-            sleep(time::Duration::from_millis(150));
+            sleep(time::Duration::from_millis(10));
             move_mouse(0, 0, MOUSEEVENTF_LEFTDOWN);
-            sleep(time::Duration::from_millis(150));
+            sleep(time::Duration::from_millis(10));
 
-            // release mouse on the left side of the stage selection
-            SetCursorPos(coordinates_stage_left[0], coordinates_stage_left[1]);
-            sleep(time::Duration::from_millis(150));
+            // move mouse to the left before releasing it
+            move_mouse(-400, 0, MOUSEEVENTF_MOVE);
+            sleep(time::Duration::from_millis(10));
             move_mouse(0, 0, MOUSEEVENTF_LEFTUP);
-            sleep(time::Duration::from_millis(150));
+            sleep(time::Duration::from_millis(10));
         }
 
-        sleep(time::Duration::from_millis(300));
+        sleep(time::Duration::from_millis(10));
         let stage = configuration.get("FarmStage").unwrap();
         send_string(stage.to_string(), false);
-        sleep(time::Duration::from_millis(100));
+        sleep(time::Duration::from_millis(10));
     }
 
     unsafe fn enter_dungeon_available(&self) -> bool {
