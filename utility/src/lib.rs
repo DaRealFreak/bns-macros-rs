@@ -5,6 +5,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_
 
 pub mod game;
 pub mod activity;
+pub mod memory;
 
 static mut USED_HDC: Option<HDC> = None;
 
