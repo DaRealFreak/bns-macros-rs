@@ -2,3 +2,4 @@
 /.idea
 *.ini
 *.log
+*_test.rs
