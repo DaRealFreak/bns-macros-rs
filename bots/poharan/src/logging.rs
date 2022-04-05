@@ -12,10 +12,14 @@ pub(crate) trait Logging {
 impl Logging for Poharan {
     fn init_log(&self) {
         let configuration = self.settings.section(Some("Configuration")).unwrap();
+        let log_config = ConfigBuilder::new()
+            .set_time_to_local(true)
+            .build();
+
         CombinedLogger::init(
             vec![
-                TermLogger::new(LevelFilter::Info, Config::default(), TerminalMode::Mixed, ColorChoice::Auto),
-                WriteLogger::new(LevelFilter::Info, Config::default(), File::create(configuration.get("LogFile").unwrap()).unwrap()),
+                TermLogger::new(LevelFilter::Info, log_config.clone(), TerminalMode::Mixed, ColorChoice::Auto),
+                WriteLogger::new(LevelFilter::Info, log_config, File::create(configuration.get("LogFile").unwrap()).unwrap()),
             ]
         ).unwrap();
     }
