@@ -8,7 +8,8 @@ pub(crate) fn create_ini() {
         .set("FarmStage", "5")
         .set("Clients", "Lunar Tempest")
         .set("AnimationSpeedHackValue", "8")
-        .set("SlowAnimationSpeedHackValue", "5.5");
+        .set("SlowAnimationSpeedHackValue", "5.5")
+        .set("CameraFullTurnPixels", "3174");
 
     // all hotkeys, to find the used keys check
     // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
@@ -83,6 +84,18 @@ pub(crate) fn create_ini() {
         .set("ThrallReady", "0x01040E")
         .set("PositionOutOfCombat", "841,837")
         .set("OutOfCombat", "0xA0B930");
+
+    // user interface settings related to the party management
+    conf.with_section(Some("UserInterfaceCamera"))
+        .set("PositionOverMap", "1725,283")
+        .set("PositionTrackingMap", "1889,54")
+        .set("TrackingMap", "0xAEA698,0x6F778F")
+        .set("PositionMapNotTransparent", "1892,278")
+        .set("MapNotTransparent", "0x98896B")
+        .set("PositionCrossServerLobby", "1705,299")
+        .set("CrossServerLobby", "0xD53C17")
+        .set("PositionMap0Degrees", "1725,283")
+        .set("Map0Degrees", "0xED5E11");
 
     conf.write_to_file("configuration/poharan.ini").unwrap();
 }

@@ -13,10 +13,12 @@ use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, get_window_title_by_hwnd, switch_to_hwnd};
 
+use crate::camera::{Camera, Degree};
 use crate::cross_server_lobby::CrossServerLobby;
 use crate::dungeon::Dungeon;
-use crate::hotkeys::{Degree, HotKeys};
+use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
+use crate::map::Map;
 use crate::user_interface::UserInterface;
 
 mod configuration;
@@ -25,6 +27,8 @@ mod dungeon;
 mod hotkeys;
 mod lobby;
 mod user_interface;
+mod camera;
+mod map;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
@@ -250,7 +254,10 @@ impl Poharan {
 
         if self.run_count > 0 {
             println!("[{}] set camera to 0 degrees", Local::now().to_rfc2822());
-            self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
+            if !self.change_camera_to_degrees(Degree::TurnTo0) {
+                println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+                return false
+            }
         }
 
         println!("[{}] disable animation speed hack", Local::now().to_rfc2822());
@@ -290,7 +297,7 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_millis() > 3000 {
+            if start.elapsed().as_millis() > 7000 {
                 println!("[{}] unable to find portal to Tae Jangum, abandoning run", Local::now().to_rfc2822());
                 return false;
             }
@@ -405,7 +412,7 @@ impl Poharan {
         println!("[{}] opening portal to boss 2", Local::now().to_rfc2822());
         self.open_portal(2);
 
-        println!("[{}] wait to get out of combat and set camera to 90 degrees", Local::now().to_rfc2822());
+        println!("[{}] wait to get out of combat", Local::now().to_rfc2822());
         loop {
             self.activity.check_game_activity();
 
@@ -418,8 +425,13 @@ impl Poharan {
                 return false;
             }
 
-            self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
             sleep(time::Duration::from_millis(100));
+        }
+
+        println!("[{}] set camera to 90 degrees", Local::now().to_rfc2822());
+        if !self.change_camera_to_degrees(Degree::TurnTo90) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
         }
 
         self.move_to_bridge()
@@ -532,7 +544,10 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+        if !self.change_camera_to_degrees(Degree::TurnTo90) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
+        }
 
         println!("[{}] moving further down the bridge", Local::now().to_rfc2822());
         send_key(VK_W, true);
@@ -558,7 +573,10 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+        if !self.change_camera_to_degrees(Degree::TurnTo90) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
+        }
 
         println!("[{}] moving warlock to Poharan", Local::now().to_rfc2822());
         self.move_to_poharan(true);
@@ -722,5 +740,6 @@ fn main() {
     unsafe {
         let mut poharan = Poharan::new();
         poharan.start();
+        // poharan.change_camera_to_degrees(Degree::TurnTo90);
     }
 }

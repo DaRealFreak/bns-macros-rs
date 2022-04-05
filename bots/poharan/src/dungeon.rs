@@ -6,7 +6,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, V
 
 use bns_utility::{send_key, send_keys};
 
-use crate::{Degree, HotKeys, Poharan, UserInterface};
+use crate::{Camera, Degree, HotKeys, Poharan, UserInterface};
 
 pub(crate) trait Dungeon {
     unsafe fn animation_speed(&self) -> f64;
@@ -117,7 +117,10 @@ impl Dungeon for Poharan {
 
     unsafe fn use_poharan_portal(&self) -> bool {
         println!("[{}] turning camera to 0 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo0);
+        if !self.change_camera_to_degrees(Degree::TurnTo0) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
+        }
 
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
@@ -183,7 +186,10 @@ impl Dungeon for Poharan {
         self.hotkeys_auto_combat_toggle();
 
         println!("[{}] turning camera to 270 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo270);
+        if !self.change_camera_to_degrees(Degree::TurnTo270) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
+        }
 
         println!("[{}] enable slow animation speed hack", Local::now().to_rfc2822());
         self.hotkeys_slow_animation_speed_hack_enable();
@@ -286,7 +292,10 @@ impl Dungeon for Poharan {
 
     unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool {
         println!("[{}] turning camera to 90 degrees", Local::now().to_rfc2822());
-        self.hotkeys_change_camera_to_degrees(Degree::TurnTo90);
+        if !self.change_camera_to_degrees(Degree::TurnTo90) {
+            println!("[{}] unable to reset camera, abandoning run", Local::now().to_rfc2822());
+            return false
+        }
 
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
