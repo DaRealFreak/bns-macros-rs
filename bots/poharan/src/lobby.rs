@@ -179,21 +179,21 @@ impl Lobby for Poharan {
 
             // press mouse down on the right side of the stage selection
             SetCursorPos(coordinates_stage_right[0], coordinates_stage_right[1]);
-            sleep(time::Duration::from_millis(10));
+            sleep(time::Duration::from_millis(50));
             move_mouse(0, 0, MOUSEEVENTF_LEFTDOWN);
-            sleep(time::Duration::from_millis(10));
+            sleep(time::Duration::from_millis(50));
 
             // move mouse to the left before releasing it
             move_mouse(-400, 0, MOUSEEVENTF_MOVE);
-            sleep(time::Duration::from_millis(10));
+            sleep(time::Duration::from_millis(50));
             move_mouse(0, 0, MOUSEEVENTF_LEFTUP);
-            sleep(time::Duration::from_millis(10));
+            sleep(time::Duration::from_millis(50));
         }
 
-        sleep(time::Duration::from_millis(10));
+        sleep(time::Duration::from_millis(200));
         let stage = configuration.get("FarmStage").unwrap();
         send_string(stage.to_string(), false);
-        sleep(time::Duration::from_millis(10));
+        sleep(time::Duration::from_millis(150));
     }
 
     unsafe fn enter_dungeon_available(&self) -> bool {
