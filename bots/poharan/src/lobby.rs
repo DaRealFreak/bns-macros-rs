@@ -169,8 +169,6 @@ impl Lobby for Poharan {
 
         let position_stage_right = settings.get("PositionStageRightSide").unwrap().split(",");
         let coordinates_stage_right: Vec<i32> = position_stage_right.map(|s| s.parse::<i32>().unwrap()).collect();
-        let position_stage_left = settings.get("PositionStageLeftSide").unwrap().split(",");
-        let coordinates_stage_left: Vec<i32> = position_stage_left.map(|s| s.parse::<i32>().unwrap()).collect();
 
         loop {
             self.activity.check_game_activity();

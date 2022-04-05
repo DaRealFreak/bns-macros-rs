@@ -6,7 +6,7 @@ pub(crate) fn create_ini() {
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
-        .set("Clients", "Lunar Tempest")
+        .set("Clients", "Lunar Tempest,Shãrk")
         .set("AnimationSpeedHackValue", "8")
         .set("SlowAnimationSpeedHackValue", "5.5")
         .set("CameraFullTurnPixels", "3174")
@@ -41,7 +41,6 @@ pub(crate) fn create_ini() {
         .set("PositionStageSelected", "1732,485")
         .set("StageSelected", "0xE2E2E2")
         .set("PositionStageRightSide", "1747,478")
-        .set("PositionStageLeftSide", "1710,478")
         .set("PositionReady", "962,1037")
         .set("PositionChat", "160,883")
         .set("PositionEnter", "990,1036")
