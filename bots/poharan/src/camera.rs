@@ -69,13 +69,15 @@ impl Camera for Poharan {
             return false;
         }
 
+        sleep(time::Duration::from_millis(150));
+
         match degrees {
             Degree::TurnTo0 => {},
             Degree::TurnTo90 => self.rotate_camera(90),
             Degree::TurnTo270 => self.rotate_camera(270),
         }
 
-        sleep(time::Duration::from_millis(20));
+        sleep(time::Duration::from_millis(150));
 
         true
     }
