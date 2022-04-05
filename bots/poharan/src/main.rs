@@ -254,6 +254,12 @@ impl Poharan {
     unsafe fn move_to_dungeon(&mut self) -> bool {
         self.run_start_timestamp = time::Instant::now();
 
+        info!("disable animation speed hack");
+        self.hotkeys_animation_speed_hack_disable();
+
+        info!("wait for loading screen");
+        self.wait_loading_screen();
+
         if self.run_count > 0 {
             info!("set camera to 0 degrees");
             if !self.change_camera_to_degrees(Degree::TurnTo0) {
@@ -261,12 +267,6 @@ impl Poharan {
                 return false
             }
         }
-
-        info!("disable animation speed hack");
-        self.hotkeys_animation_speed_hack_disable();
-
-        info!("wait for loading screen");
-        self.wait_loading_screen();
 
         info!("running warlock into the dungeon");
         if !self.run_into_dungeon() {
