@@ -612,13 +612,14 @@ impl Poharan {
         info!("activating auto combat for the warlock");
         self.hotkeys_auto_combat_toggle();
 
+        let start = time::Instant::now();
         info!("wait for dynamic reward");
         loop {
             self.activity.check_game_activity();
 
             // Poharan is dead and dynamic reward is visible
             if self.dynamic_reward_visible() {
-                info!("found dynamic reward");
+                info!("found dynamic reward, fighting Poharan took {} seconds", start.elapsed().as_secs());
                 break;
             }
 
@@ -627,7 +628,7 @@ impl Poharan {
                 return false;
             }
 
-            sleep(time::Duration::from_secs(1));
+            sleep(time::Duration::from_millis(500));
         }
 
         info!("sleep to let warlock pick up possible loot");
