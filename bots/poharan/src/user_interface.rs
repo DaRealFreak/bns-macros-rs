@@ -1,7 +1,9 @@
 use std::thread::sleep;
 use std::time;
+
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
+
 use bns_utility::{get_pixel, move_mouse};
 
 use crate::{Lobby, Poharan};

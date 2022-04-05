@@ -18,6 +18,7 @@ use crate::cross_server_lobby::CrossServerLobby;
 use crate::dungeon::Dungeon;
 use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
+use crate::logging::Logging;
 use crate::map::Map;
 use crate::user_interface::UserInterface;
 
@@ -29,6 +30,7 @@ mod lobby;
 mod user_interface;
 mod camera;
 mod map;
+mod logging;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
@@ -739,7 +741,7 @@ impl Poharan {
 fn main() {
     unsafe {
         let mut poharan = Poharan::new();
+        poharan.init_log();
         poharan.start();
-        // poharan.change_camera_to_degrees(Degree::TurnTo90);
     }
 }

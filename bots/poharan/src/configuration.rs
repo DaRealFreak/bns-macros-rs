@@ -9,7 +9,8 @@ pub(crate) fn create_ini() {
         .set("Clients", "Lunar Tempest")
         .set("AnimationSpeedHackValue", "8")
         .set("SlowAnimationSpeedHackValue", "5.5")
-        .set("CameraFullTurnPixels", "3174");
+        .set("CameraFullTurnPixels", "3174")
+        .set("LogFile", "poharan_multibox.log");
 
     // all hotkeys, to find the used keys check
     // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
