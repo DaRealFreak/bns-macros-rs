@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use windows::Win32::Graphics::Gdi::{GetDC, GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MapVirtualKeyA, MOUSE_EVENT_FLAGS, MOUSEINPUT, SendInput, VIRTUAL_KEY};
+use windows::Win32::UI::Input::KeyboardAndMouse::{GetActiveWindow, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MapVirtualKeyA, MOUSE_EVENT_FLAGS, MOUSEEVENTF_WHEEL, MOUSEINPUT, SendInput, VIRTUAL_KEY};
 
 pub mod game;
 pub mod activity;
@@ -36,6 +36,23 @@ pub unsafe fn move_mouse(x: i32, y: i32, flags: MOUSE_EVENT_FLAGS) {
         },
     };
     SendInput(&[input], std::mem::size_of::<INPUT>() as i32);
+}
+
+pub unsafe fn scroll_mouse(mouse_data: u32) -> u32 {
+    let input = INPUT {
+        r#type: INPUT_MOUSE,
+        Anonymous: INPUT_0 {
+            mi: MOUSEINPUT {
+                dx: 0,
+                dy: 0,
+                mouseData: mouse_data,
+                dwFlags: MOUSEEVENTF_WHEEL,
+                time: 0,
+                dwExtraInfo: 0,
+            },
+        },
+    };
+    SendInput(&[input], std::mem::size_of::<INPUT>() as i32)
 }
 
 pub unsafe fn send_key(key: VIRTUAL_KEY, down: bool) {
