@@ -1,5 +1,6 @@
 use std::thread::sleep;
 use std::time;
+use log::{info, warn};
 
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_MENU};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
@@ -20,6 +21,7 @@ pub(crate) trait Map {
 impl Map for Poharan {
     unsafe fn reset_map(&self) -> bool {
         if !self.click_map_opaque() {
+            warn!("making map opaque was unsuccessful, unable to reset map");
             return false;
         }
 
@@ -41,6 +43,7 @@ impl Map for Poharan {
         }
 
         if !self.click_tracking_map() {
+            warn!("click tracking map was unsuccessful, unable to reset map");
             return false;
         }
 
@@ -58,6 +61,7 @@ impl Map for Poharan {
 
             // timeout
             if start.elapsed().as_millis() > 3000 {
+                warn!("timeout while trying to click tracking map");
                 return false;
             }
 

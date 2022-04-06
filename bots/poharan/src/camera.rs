@@ -1,5 +1,6 @@
 use std::thread::sleep;
 use std::time;
+use log::warn;
 
 use windows::Win32::UI::Input::KeyboardAndMouse::MOUSEEVENTF_MOVE;
 
@@ -36,6 +37,7 @@ impl Camera for Poharan {
 
     unsafe fn reset_camera(&self) -> bool {
         if !self.reset_map() {
+            warn!("resetting map was unsuccessful, unable to reset camera");
             return false;
         }
 
@@ -45,6 +47,7 @@ impl Camera for Poharan {
 
             // timeout
             if start.elapsed().as_millis() > 3000 {
+                warn!("timeout while trying to reset the camera");
                 return false;
             }
 
@@ -66,6 +69,7 @@ impl Camera for Poharan {
 
     unsafe fn change_camera_to_degrees(&self, degrees: Degree) -> bool {
         if !self.reset_camera() {
+            warn!("resetting camera was unsuccessful, unable to change camera to degrees");
             return false;
         }
 
