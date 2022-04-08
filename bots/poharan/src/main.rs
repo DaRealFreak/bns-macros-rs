@@ -617,6 +617,11 @@ impl Poharan {
                 return false;
             }
 
+            if start.elapsed().as_secs() > 600 {
+                warn!("timeout for fighting poharan, abandoning run");
+                return false;
+            }
+
             sleep(time::Duration::from_millis(500));
         }
 
