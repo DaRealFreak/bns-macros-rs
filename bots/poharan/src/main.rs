@@ -721,9 +721,9 @@ impl Poharan {
 
     unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
         if slow {
-            time::Duration::from_millis((original_time as f64 / self.animation_speed_slow()) as u64)
+            time::Duration::from_millis((original_time as f32 / self.animation_speed_slow()) as u64)
         } else {
-            time::Duration::from_millis((original_time as f64 / self.animation_speed()) as u64)
+            time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
         }
     }
 }

@@ -6,7 +6,7 @@ use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThre
 
 use bns_utility::memory::{change_value, module_entry, read_value};
 
-use crate::{Dungeon, Poharan};
+use crate::Poharan;
 
 pub(crate) struct ProcessInformation {
     handle: HANDLE,
