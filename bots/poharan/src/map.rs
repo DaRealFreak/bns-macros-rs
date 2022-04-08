@@ -1,6 +1,6 @@
 use std::thread::sleep;
 use std::time;
-use log::{info, warn};
+use log::{warn};
 
 use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, VK_MENU};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;

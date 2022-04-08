@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::Path;
 use std::process::exit;
 use std::thread::sleep;
@@ -20,6 +21,7 @@ use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
 use crate::logging::Logging;
 use crate::map::Map;
+use crate::memory::ProcessInformation;
 use crate::user_interface::UserInterface;
 
 mod configuration;
@@ -31,9 +33,11 @@ mod user_interface;
 mod camera;
 mod map;
 mod logging;
+mod memory;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
+    client_info: HashMap<isize, ProcessInformation>,
     activity: GameActivity,
     run_count: u128,
     successful_runs: Vec<u128>,
@@ -52,6 +56,7 @@ impl Poharan {
 
         Poharan {
             start_hwnd: HWND(0),
+            client_info: HashMap::new(),
             activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
             successful_runs: vec![],
