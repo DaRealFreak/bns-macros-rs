@@ -6,11 +6,12 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, V
 
 use bns_utility::{send_key, send_keys};
 
-use crate::{Camera, Degree, HotKeys, Poharan, UserInterface};
+use crate::{HotKeys, Poharan, UserInterface};
+use crate::memory::Memory;
 
 pub(crate) trait Dungeon {
-    unsafe fn animation_speed(&self) -> f64;
-    unsafe fn animation_speed_slow(&self) -> f64;
+    unsafe fn animation_speed(&self) -> f32;
+    unsafe fn animation_speed_slow(&self) -> f32;
     unsafe fn thrall_available(&self) -> bool;
     unsafe fn portal_icon_visible(&self) -> bool;
     unsafe fn exit_portal_icon_visible(&self) -> bool;
@@ -20,25 +21,25 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
     unsafe fn open_portal(&self, boss: u8);
-    unsafe fn use_poharan_portal(&self) -> bool;
-    unsafe fn move_to_poharan(&self, warlock: bool);
-    unsafe fn leave_dungeon_client(&self, warlock: bool) -> bool;
-    unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool;
+    unsafe fn use_poharan_portal(&mut self) -> bool;
+    unsafe fn move_to_poharan(&mut self, warlock: bool);
+    unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool;
+    unsafe fn leave_dungeon_client_b1_drop_route(&mut self) -> bool;
 }
 
 impl Dungeon for Poharan {
-    unsafe fn animation_speed(&self) -> f64 {
+    unsafe fn animation_speed(&self) -> f32 {
         let section_settings = self.settings.section(Some("Configuration")).unwrap();
         let position_settings = section_settings.get("AnimationSpeedHackValue").unwrap();
 
-        position_settings.parse::<f64>().unwrap()
+        position_settings.parse::<f32>().unwrap()
     }
 
-    unsafe fn animation_speed_slow(&self) -> f64 {
+    unsafe fn animation_speed_slow(&self) -> f32 {
         let section_settings = self.settings.section(Some("Configuration")).unwrap();
         let position_settings = section_settings.get("SlowAnimationSpeedHackValue").unwrap();
 
-        position_settings.parse::<f64>().unwrap()
+        position_settings.parse::<f32>().unwrap()
     }
 
     unsafe fn thrall_available(&self) -> bool {
@@ -115,12 +116,9 @@ impl Dungeon for Poharan {
         send_key(VK_W, false);
     }
 
-    unsafe fn use_poharan_portal(&self) -> bool {
+    unsafe fn use_poharan_portal(&mut self) -> bool {
         info!("turning camera to 0 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo0) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(0f32);
 
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
@@ -159,7 +157,7 @@ impl Dungeon for Poharan {
         true
     }
 
-    unsafe fn move_to_poharan(&self, warlock: bool) {
+    unsafe fn move_to_poharan(&mut self, warlock: bool) {
         loop {
             self.activity.check_game_activity();
 
@@ -169,7 +167,7 @@ impl Dungeon for Poharan {
 
             sleep(time::Duration::from_millis(100));
         }
-        self.hotkeys_animation_speed_hack_enable();
+        self.animation_speed_hack(self.animation_speed());
 
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
@@ -181,19 +179,14 @@ impl Dungeon for Poharan {
         send_keys(vec![VK_W, VK_D], false);
     }
 
-    unsafe fn leave_dungeon_client(&self, warlock: bool) -> bool {
+    unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool {
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 
         info!("turning camera to 270 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo270) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(270f32);
 
-        info!("enable slow animation speed hack");
-        self.hotkeys_slow_animation_speed_hack_enable();
-
+        info!("waiting to get out of combat for consistent walking speed");
         loop {
             self.activity.check_game_activity();
 
@@ -204,13 +197,30 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
+        info!("enable slow animation speed hack");
+        self.animation_speed_hack(self.animation_speed_slow());
+
+        sleep(time::Duration::from_millis(250));
+
         send_keys(vec![VK_W, VK_D], true);
         sleep(self.get_sleep_time(1500, true));
         send_key(VK_D, false);
         sleep(self.get_sleep_time(1500, true));
         send_key(VK_W, false);
 
-        sleep(time::Duration::from_millis(500));
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.exit_portal_icon_visible() {
+                break;
+            }
+
+            // timeout
+            if start.elapsed().as_millis() > 1500 {
+                break;
+            }
+        }
 
         if !self.exit_portal_icon_visible() {
             if warlock {
@@ -219,6 +229,7 @@ impl Dungeon for Poharan {
             } else {
                 info!("probably dropped something from Tae Jangum, trying second route");
                 if !self.leave_dungeon_client_b1_drop_route() {
+                    warn!("exit portal icon not visible, abandoning run");
                     return false;
                 }
             }
@@ -290,12 +301,9 @@ impl Dungeon for Poharan {
         true
     }
 
-    unsafe fn leave_dungeon_client_b1_drop_route(&self) -> bool {
+    unsafe fn leave_dungeon_client_b1_drop_route(&mut self) -> bool {
         info!("turning camera to 90 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo90) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(90f32);
 
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);

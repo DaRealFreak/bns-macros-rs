@@ -2,11 +2,11 @@ use ini::Properties;
 use windows::Win32::Foundation::{HANDLE, HWND};
 use windows::Win32::System::Diagnostics::ToolHelp::MODULEENTRY32;
 use windows::Win32::System::Threading::{OpenProcess, PROCESS_ALL_ACCESS};
-use windows::Win32::UI::WindowsAndMessaging::GetWindowThreadProcessId;
+use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
 
 use bns_utility::memory::{change_value, module_entry, read_value};
 
-use crate::Poharan;
+use crate::{Dungeon, Poharan};
 
 pub(crate) struct ProcessInformation {
     handle: HANDLE,
@@ -14,6 +14,9 @@ pub(crate) struct ProcessInformation {
 }
 
 pub(crate) trait Memory {
+    unsafe fn update_client_info_for_hwnd(&mut self, hwnd: HWND);
+    unsafe fn change_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, value: T);
+    unsafe fn read_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, uninitialized_value: T) -> T;
     unsafe fn base_address(&self) -> u64;
     unsafe fn offsets_animation_speed(&self) -> Vec<u64>;
     unsafe fn offsets_camera_yaw(&self) -> Vec<u64>;
@@ -21,12 +24,40 @@ pub(crate) trait Memory {
     unsafe fn offsets_player_y(&self) -> Vec<u64>;
     unsafe fn offsets_player_z(&self) -> Vec<u64>;
     unsafe fn offsets_dungeon_stage(&self) -> Vec<u64>;
-    unsafe fn update_client_info_for_hwnd(&mut self, hwnd: HWND);
-    unsafe fn change_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, value: T);
-    unsafe fn read_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, uninitialized_value: T) -> T;
+    unsafe fn animation_speed_hack(&mut self, speed: f32);
+    unsafe fn change_camera_to_degrees(&mut self, degree: f32);
 }
 
 impl Memory for Poharan {
+    unsafe fn update_client_info_for_hwnd(&mut self, hwnd: HWND) {
+        let mut process_id: u32 = 0;
+        GetWindowThreadProcessId(hwnd, &mut process_id);
+        let process = OpenProcess(PROCESS_ALL_ACCESS, false, process_id);
+        let module = module_entry("BNSR.exe", process_id);
+        self.client_info.insert(hwnd.0, ProcessInformation {
+            handle: process,
+            module,
+        });
+    }
+
+    unsafe fn change_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, value: T) {
+        if !self.client_info.contains_key(&hwnd.0) {
+            self.update_client_info_for_hwnd(hwnd)
+        }
+
+        let client_info = self.client_info.get(&hwnd.0).unwrap();
+        change_value(client_info.module.modBaseAddr as u64 + self.base_address(), offsets, client_info.handle, value)
+    }
+
+    unsafe fn read_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, uninitialized_value: T) -> T {
+        if !self.client_info.contains_key(&hwnd.0) {
+            self.update_client_info_for_hwnd(hwnd)
+        }
+
+        let client_info = self.client_info.get(&hwnd.0).unwrap();
+        read_value(client_info.module.modBaseAddr as u64 + self.base_address(), offsets, client_info.handle, uninitialized_value)
+    }
+
     unsafe fn base_address(&self) -> u64 {
         let properties = self.settings.section(Some("Pointers")).unwrap();
         let raw_base_address = properties.get("BaseAddress").unwrap();
@@ -59,33 +90,12 @@ impl Memory for Poharan {
         offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsDungeonStage")
     }
 
-    unsafe fn update_client_info_for_hwnd(&mut self, hwnd: HWND) {
-        let mut process_id: u32 = 0;
-        GetWindowThreadProcessId(hwnd, &mut process_id);
-        let process = OpenProcess(PROCESS_ALL_ACCESS, false, process_id);
-        let module = module_entry("BNSR.exe", process_id);
-        self.client_info.insert(hwnd.0, ProcessInformation {
-            handle: process,
-            module,
-        });
+    unsafe fn animation_speed_hack(&mut self, speed: f32) {
+        self.change_memory_value(GetForegroundWindow(), self.offsets_animation_speed(), speed);
     }
 
-    unsafe fn change_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, value: T) {
-        if !self.client_info.contains_key(&hwnd.0) {
-            self.update_client_info_for_hwnd(hwnd)
-        }
-
-        let client_info = self.client_info.get(&hwnd.0).unwrap();
-        change_value(client_info.module.modBaseAddr as u64 + self.base_address(), offsets, client_info.handle, value)
-    }
-
-    unsafe fn read_memory_value<T>(&mut self, hwnd: HWND, offsets: Vec<u64>, uninitialized_value: T) -> T {
-        if !self.client_info.contains_key(&hwnd.0) {
-            self.update_client_info_for_hwnd(hwnd)
-        }
-
-        let client_info = self.client_info.get(&hwnd.0).unwrap();
-        read_value(client_info.module.modBaseAddr as u64 + self.base_address(), offsets, client_info.handle, uninitialized_value)
+    unsafe fn change_camera_to_degrees(&mut self, degree: f32) {
+        self.change_memory_value(GetForegroundWindow(), self.offsets_camera_yaw(), degree);
     }
 }
 

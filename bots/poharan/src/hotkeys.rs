@@ -9,16 +9,10 @@ use bns_utility::send_keys;
 use crate::Poharan;
 
 pub(crate) trait HotKeys {
-    unsafe fn hotkeys_map_transparency_toggle(&self);
     unsafe fn hotkeys_get_into_combat(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self);
-    unsafe fn hotkeys_animation_speed_hack_enable(&self);
-    unsafe fn hotkeys_animation_speed_hack_disable(&self);
-    unsafe fn hotkeys_slow_animation_speed_hack_enable(&self);
-    unsafe fn hotkeys_animation_speed_hack_warlock_enable(&self);
-    unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self);
     unsafe fn hotkeys_fly_hack_boss_1(&self);
     unsafe fn hotkeys_fly_hack_boss_2(&self);
     unsafe fn hotkeys_fly_hack_disable(&self);
@@ -26,10 +20,6 @@ pub(crate) trait HotKeys {
 }
 
 impl HotKeys for Poharan {
-    unsafe fn hotkeys_map_transparency_toggle(&self) {
-        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "MapTransparency");
-    }
-
     unsafe fn hotkeys_get_into_combat(&self) {
         for _ in 0..5 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
@@ -51,41 +41,6 @@ impl HotKeys for Poharan {
         for _ in 0..15 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOff");
             sleep(time::Duration::from_millis(50));
-        }
-    }
-
-    unsafe fn hotkeys_animation_speed_hack_enable(&self) {
-        for _ in 0..15 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOn");
-            sleep(time::Duration::from_millis(50));
-        }
-    }
-
-    unsafe fn hotkeys_animation_speed_hack_disable(&self) {
-        for _ in 0..15 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackOff");
-            sleep(time::Duration::from_millis(30));
-        }
-    }
-
-    unsafe fn hotkeys_slow_animation_speed_hack_enable(&self) {
-        for _ in 0..15 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "SlowAnimationSpeedHackOn");
-            sleep(time::Duration::from_millis(50));
-        }
-    }
-
-    unsafe fn hotkeys_animation_speed_hack_warlock_enable(&self) {
-        for _ in 0..15 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOn");
-            sleep(time::Duration::from_millis(50));
-        }
-    }
-
-    unsafe fn hotkeys_animation_speed_hack_warlock_disable(&self) {
-        for _ in 0..15 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AnimationSpeedHackWarlockOff");
-            sleep(time::Duration::from_millis(30));
         }
     }
 

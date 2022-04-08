@@ -14,14 +14,12 @@ use bns_utility::{send_key, send_keys};
 use bns_utility::activity::GameActivity;
 use bns_utility::game::{find_window_hwnds_by_name_sorted_creation_time, get_window_title_by_hwnd, switch_to_hwnd};
 
-use crate::camera::{Camera, Degree};
 use crate::cross_server_lobby::CrossServerLobby;
 use crate::dungeon::Dungeon;
 use crate::hotkeys::HotKeys;
 use crate::lobby::Lobby;
 use crate::logging::Logging;
-use crate::map::Map;
-use crate::memory::ProcessInformation;
+use crate::memory::{Memory, ProcessInformation};
 use crate::user_interface::UserInterface;
 
 mod configuration;
@@ -30,8 +28,6 @@ mod dungeon;
 mod hotkeys;
 mod lobby;
 mod user_interface;
-mod camera;
-mod map;
 mod logging;
 mod memory;
 
@@ -260,17 +256,14 @@ impl Poharan {
         self.run_start_timestamp = time::Instant::now();
 
         info!("disable animation speed hack");
-        self.hotkeys_animation_speed_hack_disable();
+        self.animation_speed_hack(1.0f32);
 
         info!("wait for loading screen");
         self.wait_loading_screen();
 
         if self.run_count > 0 {
             info!("set camera to 0 degrees");
-            if !self.change_camera_to_degrees(Degree::TurnTo0) {
-                warn!("unable to reset camera, abandoning run");
-                return false
-            }
+            self.change_camera_to_degrees(0f32);
         }
 
         info!("running warlock into the dungeon");
@@ -281,7 +274,7 @@ impl Poharan {
         self.move_to_boss_1()
     }
 
-    unsafe fn move_to_boss_1(&self) -> bool {
+    unsafe fn move_to_boss_1(&mut self) -> bool {
         info!("wait for loading screen");
         self.wait_loading_screen();
 
@@ -311,7 +304,7 @@ impl Poharan {
         }
 
         info!("enable animation speed hack for the warlock");
-        self.hotkeys_animation_speed_hack_warlock_enable();
+        self.animation_speed_hack(self.animation_speed());
 
         info!("use portal to boss 1");
         let start = time::Instant::now();
@@ -354,7 +347,7 @@ impl Poharan {
         self.fight_boss_1()
     }
 
-    unsafe fn fight_boss_1(&self) -> bool {
+    unsafe fn fight_boss_1(&mut self) -> bool {
         info!("activating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
 
@@ -436,15 +429,12 @@ impl Poharan {
         }
 
         info!("set camera to 90 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo90) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(90f32);
 
         self.move_to_bridge()
     }
 
-    unsafe fn move_to_bridge(&self) -> bool {
+    unsafe fn move_to_bridge(&mut self) -> bool {
         info!("move warlock to the bridge");
 
         // move into the corner again in case we got in range of the mobs before Tae Jangum
@@ -551,10 +541,7 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         info!("turning camera to 90 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo90) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(90f32);
 
         info!("moving further down the bridge");
         send_key(VK_W, true);
@@ -580,10 +567,7 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         info!("turning camera to 90 degrees");
-        if !self.change_camera_to_degrees(Degree::TurnTo90) {
-            warn!("unable to reset camera, abandoning run");
-            return false
-        }
+        self.change_camera_to_degrees(90f32);
 
         info!("moving warlock to Poharan");
         self.move_to_poharan(true);
@@ -591,7 +575,7 @@ impl Poharan {
         self.fight_boss_2()
     }
 
-    unsafe fn fight_boss_2(&self) -> bool {
+    unsafe fn fight_boss_2(&mut self) -> bool {
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
             if hwnd.0 == self.start_hwnd.0 {
@@ -645,7 +629,7 @@ impl Poharan {
         self.leave_dungeon()
     }
 
-    unsafe fn leave_dungeon(&self) -> bool {
+    unsafe fn leave_dungeon(&mut self) -> bool {
         info!("switching to window handle {:?}", self.start_hwnd);
         if !switch_to_hwnd(self.start_hwnd) {
             warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
@@ -653,7 +637,7 @@ impl Poharan {
         }
 
         info!("disable animation speed hack for the warlock");
-        self.hotkeys_animation_speed_hack_warlock_disable();
+        self.animation_speed_hack(1.0f32);
 
         if !self.leave_dungeon_client(true) {
             return false;
