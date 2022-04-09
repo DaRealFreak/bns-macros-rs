@@ -3,7 +3,7 @@ use std::thread::sleep;
 use std::time;
 
 use log::{info, warn};
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_TAB, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_TAB, VK_W, VK_Y};
 
 use bns_utility::{send_key, send_keys};
 
@@ -21,7 +21,7 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
-    unsafe fn open_portal(&self, boss: u8);
+    unsafe fn open_portal(&mut self, boss: u8);
     unsafe fn use_poharan_portal(&mut self) -> bool;
     unsafe fn move_to_poharan(&mut self, warlock: bool);
     unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool;
@@ -75,7 +75,8 @@ impl Dungeon for Poharan {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
     }
 
-    unsafe fn open_portal(&self, boss: u8) {
+    unsafe fn open_portal(&mut self, boss: u8) {
+        let portal_start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
 
@@ -86,21 +87,39 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
-        if boss == 1 {
-            self.hotkeys_fly_hack_boss_1();
-        } else {
-            self.hotkeys_fly_hack_boss_2();
-        }
+        // get the positive sum of x and y coordinates to check if we got teleported already
+        let original_pos = self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32;
 
-        // position update for fly hack to update position
-        send_key(VK_W, true);
-        sleep(time::Duration::from_millis(50));
-        send_key(VK_W, false);
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            // if the position change from the original position is > 200 break, we properly got teleported
+            if original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32) > 200f32 {
+                break;
+            }
+
+            if start.elapsed().as_millis() > 2000 {
+                break;
+            }
+
+            if boss == 1 {
+                self.hotkeys_fly_hack_boss_1();
+            } else {
+                self.hotkeys_fly_hack_boss_2();
+            }
+
+            // small position update for detoured function to return new x/y/z coordinates to the client
+            send_key(VK_W, true);
+            sleep(time::Duration::from_millis(2));
+            send_key(VK_W, false);
+            sleep(time::Duration::from_millis(100));
+        }
 
         // spawn thrall
         let start = time::Instant::now();
         loop {
-            if start.elapsed().as_millis() > 3000 {
+            if start.elapsed().as_millis() > 2000 {
                 break;
             }
 
@@ -109,12 +128,29 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
-        self.hotkeys_fly_hack_disable();
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
 
-        // position update for fly hack to update position
-        send_key(VK_W, true);
-        sleep(time::Duration::from_millis(50));
-        send_key(VK_W, false);
+            // if the position change from the original position is now less than 200 we're back to our original position
+            if original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32) < 200f32 {
+                break;
+            }
+
+            if start.elapsed().as_millis() > 2000 {
+                break;
+            }
+
+            self.hotkeys_fly_hack_disable();
+
+            // small position update for detoured function to return new x/y/z coordinates to the client
+            send_key(VK_S, true);
+            sleep(time::Duration::from_millis(2));
+            send_key(VK_S, false);
+            sleep(time::Duration::from_millis(100));
+        }
+
+        info!("opening the portal took {}ms", portal_start.elapsed().as_millis());
     }
 
     unsafe fn use_poharan_portal(&mut self) -> bool {
