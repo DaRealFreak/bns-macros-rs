@@ -551,8 +551,8 @@ impl Poharan {
         info!("activating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
 
-        info!("sleeping 2 seconds to get into combat if there are any monsters left");
-        sleep(time::Duration::from_secs(2));
+        info!("sleeping 1 second to get into combat if there are any monsters left");
+        sleep(time::Duration::from_secs(1));
 
         loop {
             self.activity.check_game_activity();
