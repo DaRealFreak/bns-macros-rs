@@ -1,3 +1,4 @@
+use std::ops::Add;
 use std::thread::sleep;
 use std::time;
 
@@ -171,11 +172,29 @@ impl Dungeon for Poharan {
 
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
-        sleep(self.get_sleep_time(35000, false));
+
+        let start = time::Instant::now();
+        let mut timeout = self.get_sleep_time(35000, false);
         if warlock {
             // sleep additional 10 seconds for the warlock since he is further away
-            sleep(self.get_sleep_time(10000, false));
+            timeout = timeout.add(self.get_sleep_time(10000, false));
         }
+
+        loop {
+            self.activity.check_game_activity();
+
+            // timeout reached
+            if start.elapsed().as_millis() > timeout.as_millis() {
+                info!("timeout reached");
+                break;
+            }
+
+            if self.get_player_pos_x() > 7150f32 && self.get_player_pos_y() > -25600f32 {
+                info!("reached position");
+                break;
+            }
+        }
+
         send_keys(vec![VK_W, VK_D], false);
     }
 
