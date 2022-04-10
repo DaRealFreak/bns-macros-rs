@@ -206,6 +206,9 @@ impl Dungeon for Poharan {
         }
         self.animation_speed_hack(self.animation_speed());
 
+        // sleep tiny bit so sprinting doesn't bug
+        sleep(time::Duration::from_millis(250));
+
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
 
