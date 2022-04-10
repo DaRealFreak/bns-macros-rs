@@ -2,6 +2,7 @@
 members = [
     "utility",
     "bots/poharan",
+    "bots/aerodrome-exp",
     "macros"
 ]
 
