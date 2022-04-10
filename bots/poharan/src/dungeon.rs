@@ -119,7 +119,7 @@ impl Dungeon for Poharan {
         // spawn thrall
         let start = time::Instant::now();
         loop {
-            if start.elapsed().as_millis() > 2000 {
+            if start.elapsed().as_millis() > 2500 {
                 break;
             }
 
