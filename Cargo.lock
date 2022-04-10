@@ -35,7 +35,6 @@ name = "bns-poharan"
 version = "0.1.0"
 dependencies = [
  "bns-utility",
- "chrono",
  "log",
  "rust-ini",
  "simplelog",
