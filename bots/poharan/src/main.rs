@@ -284,7 +284,10 @@ impl Poharan {
         send_key(VK_W, false);
 
         info!("opening portal to boss 1");
-        self.open_portal(1);
+        if !self.open_portal(1) {
+            info!("unable to open portal to boss 1");
+            return false;
+        }
 
         let start = time::Instant::now();
         loop {
@@ -408,7 +411,10 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         info!("opening portal to boss 2");
-        self.open_portal(2);
+        if !self.open_portal(2) {
+            info!("unable to open portal to boss 2");
+            return false;
+        }
 
         info!("wait to get out of combat");
         loop {
