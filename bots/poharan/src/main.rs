@@ -702,6 +702,9 @@ impl Poharan {
                 break;
             }
 
+            // disable fly hack if we ran into a timeout while disabling it
+            self.hotkeys_fly_hack_disable();
+
             // send every possibly required key to get out of quest windows/dialogues
             for _ in 0..10 {
                 // spam Y and F more often before any N key interaction than N to accept quests

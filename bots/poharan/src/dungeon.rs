@@ -133,11 +133,14 @@ impl Dungeon for Poharan {
             self.activity.check_game_activity();
 
             // if the position change from the original position is now less than 200 we're back to our original position
-            if original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32) < 200f32 {
+            let position_difference = original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32);
+            if position_difference < 200f32 {
+                info!("difference to the original position is below 200 ({})", position_difference);
                 break;
             }
 
-            if start.elapsed().as_millis() > 2000 {
+            if start.elapsed().as_millis() > 2500 {
+                warn!("ran into timeout while disabling fly hack");
                 break;
             }
 
