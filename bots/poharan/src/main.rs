@@ -33,6 +33,7 @@ mod memory;
 
 pub(crate) struct Poharan {
     start_hwnd: HWND,
+    carry_hwnd: HWND,
     client_info: HashMap<isize, ProcessInformation>,
     activity: GameActivity,
     run_count: u128,
@@ -52,6 +53,7 @@ impl Poharan {
 
         Poharan {
             start_hwnd: HWND(0),
+            carry_hwnd: HWND(0),
             client_info: HashMap::new(),
             activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
@@ -266,6 +268,39 @@ impl Poharan {
             return false;
         }
 
+        for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
+            // ignore starting window hwnd since he handles the invites
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            info!("switching to window handle {:?}", hwnd);
+            switch_to_hwnd(hwnd);
+
+            info!("setting carry client {:?}", hwnd);
+            self.carry_hwnd = hwnd;
+
+            info!("running carry into the dungeon");
+            if !self.run_into_dungeon() {
+                return false;
+            }
+
+            // break after the carry is in the dungeon already
+            break;
+        }
+
+        info!("switching to window handle {:?}", self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        info!("wait for loading screen");
+        self.wait_loading_screen();
+
+        info!("opening portal to boss 1");
+        self.open_portal(1);
+
+        info!("switching to window handle {:?}", self.carry_hwnd);
+        switch_to_hwnd(self.carry_hwnd);
+
         self.move_to_boss_1()
     }
 
@@ -282,9 +317,6 @@ impl Poharan {
         send_keys(vec![VK_SHIFT, VK_A], false);
         sleep(time::Duration::from_millis(1750));
         send_key(VK_W, false);
-
-        info!("opening portal to boss 1");
-        self.open_portal(1);
 
         let start = time::Instant::now();
         loop {
@@ -348,8 +380,8 @@ impl Poharan {
 
         let start = time::Instant::now();
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, who is already fighting boss 1
-            if hwnd.0 == self.start_hwnd.0 {
+            // ignore warlock and carry, who are already in the dungeon
+            if hwnd.0 == self.start_hwnd.0 || hwnd.0 == self.carry_hwnd.0 {
                 continue;
             }
 
@@ -366,9 +398,9 @@ impl Poharan {
             }
         }
 
-        info!("switching to window handle {:?}", self.start_hwnd);
-        if !switch_to_hwnd(self.start_hwnd) {
-            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
+        info!("switching to window handle {:?}", self.carry_hwnd);
+        if !switch_to_hwnd(self.carry_hwnd) {
+            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.carry_hwnd);
             exit(-1);
         }
 
@@ -395,17 +427,20 @@ impl Poharan {
             self.activity.check_game_activity();
         }
 
-        info!("sleep to let warlock pick up possible loot or finish leftover mobs");
-        sleep(time::Duration::from_millis(4000));
+        info!("switching to window handle {:?}", self.start_hwnd);
+        switch_to_hwnd(self.start_hwnd);
+
+        info!("opening portal to boss 2");
+        self.open_portal(2);
+
+        info!("switching to window handle {:?}", self.carry_hwnd);
+        switch_to_hwnd(self.carry_hwnd);
 
         info!("sleep to let warlock run into the return position");
         sleep(self.get_sleep_time(6000, false));
 
-        info!("deactivating auto combat on the warlock");
+        info!("deactivating auto combat on the carry");
         self.hotkeys_auto_combat_toggle();
-
-        info!("opening portal to boss 2");
-        self.open_portal(2);
 
         info!("wait to get out of combat");
         loop {
@@ -430,7 +465,7 @@ impl Poharan {
     }
 
     unsafe fn move_to_bridge(&mut self) -> bool {
-        info!("move warlock to the bridge");
+        info!("move carry to the bridge");
 
         // move into the corner again in case we got in range of the mobs before Tae Jangum
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
@@ -475,8 +510,8 @@ impl Poharan {
         self.hotkeys_auto_combat_toggle();
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, who is fighting on the bridge
-            if hwnd.0 == self.start_hwnd.0 {
+            // ignore carry, who is fighting on the bridge
+            if hwnd.0 == self.carry_hwnd.0 {
                 continue;
             }
 
@@ -498,7 +533,7 @@ impl Poharan {
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             // ignore warlock, who is fighting on the bridge
-            if hwnd.0 == self.start_hwnd.0 {
+            if hwnd.0 == self.carry_hwnd.0 {
                 continue;
             }
 
@@ -512,8 +547,8 @@ impl Poharan {
             self.move_to_poharan(false);
         }
 
-        info!("switching to window handle {:?}", self.start_hwnd);
-        if !switch_to_hwnd(self.start_hwnd) {
+        info!("switching to window handle {:?}", self.carry_hwnd);
+        if !switch_to_hwnd(self.carry_hwnd) {
             warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
             exit(-1);
         }
@@ -522,12 +557,12 @@ impl Poharan {
             self.activity.check_game_activity();
 
             if self.out_of_combat() {
-                info!("warlock is out of combat");
+                info!("carry is out of combat");
                 break;
             }
 
             if self.revive_visible() {
-                warn!("died with the warlock on bridge, abandoning run");
+                warn!("died with the carry on bridge, abandoning run");
                 return false;
             }
         }
@@ -543,7 +578,7 @@ impl Poharan {
         sleep(self.get_sleep_time(7000, false));
         send_key(VK_W, false);
 
-        info!("activating auto combat on the warlock");
+        info!("activating auto combat on the carry");
         self.hotkeys_auto_combat_toggle();
 
         info!("sleeping 1 second to get into combat if there are any monsters left");
@@ -553,7 +588,7 @@ impl Poharan {
             self.activity.check_game_activity();
 
             if self.out_of_combat() {
-                info!("warlock is out of combat");
+                info!("carry is out of combat");
                 break;
             }
         }
@@ -564,7 +599,7 @@ impl Poharan {
         info!("turning camera to 90 degrees");
         self.change_camera_to_degrees(90f32);
 
-        info!("moving warlock to Poharan");
+        info!("moving carry to Poharan");
         self.move_to_poharan(true);
 
         self.fight_boss_2()
@@ -573,7 +608,7 @@ impl Poharan {
     unsafe fn fight_boss_2(&mut self) -> bool {
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
-            if hwnd.0 == self.start_hwnd.0 {
+            if hwnd.0 == self.carry_hwnd.0 {
                 continue;
             }
 
@@ -587,9 +622,9 @@ impl Poharan {
             self.hotkeys_auto_combat_toggle();
         }
 
-        info!("switching to window handle {:?}", self.start_hwnd);
-        if !switch_to_hwnd(self.start_hwnd) {
-            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
+        info!("switching to window handle {:?}", self.carry_hwnd);
+        if !switch_to_hwnd(self.carry_hwnd) {
+            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.carry_hwnd);
             exit(-1);
         }
 
@@ -620,7 +655,7 @@ impl Poharan {
             sleep(time::Duration::from_millis(500));
         }
 
-        info!("sleep to let warlock pick up possible loot");
+        info!("sleep to let carry pick up possible loot");
         sleep(time::Duration::from_millis(4000));
 
         info!("sleep to let all clients run into the return position");
@@ -639,7 +674,7 @@ impl Poharan {
         info!("disable animation speed hack for the warlock");
         self.animation_speed_hack(1.0f32);
 
-        if !self.leave_dungeon_client(true) {
+        if !self.leave_dungeon_client(false) {
             return false;
         }
 
@@ -656,7 +691,7 @@ impl Poharan {
             }
 
             info!("leave dungeon for client {}", index + 1);
-            if !self.leave_dungeon_client(false) {
+            if !self.leave_dungeon_client(hwnd.0 == self.carry_hwnd.0) {
                 return false;
             }
         }

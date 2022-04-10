@@ -157,6 +157,18 @@ impl Dungeon for Poharan {
         info!("turning camera to 0 degrees");
         self.change_camera_to_degrees(0f32);
 
+        sleep(time::Duration::from_millis(500));
+
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() {
+                break;
+            }
+
+            sleep(time::Duration::from_millis(100));
+        }
+
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
         sleep(time::Duration::from_millis(350));
@@ -206,6 +218,8 @@ impl Dungeon for Poharan {
         }
         self.animation_speed_hack(self.animation_speed());
 
+        sleep(time::Duration::from_millis(250));
+
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
 
@@ -234,7 +248,7 @@ impl Dungeon for Poharan {
         send_keys(vec![VK_W, VK_D], false);
     }
 
-    unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool {
+    unsafe fn leave_dungeon_client(&mut self, carry: bool) -> bool {
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 
@@ -278,7 +292,7 @@ impl Dungeon for Poharan {
         }
 
         if !self.exit_portal_icon_visible() {
-            if warlock {
+            if carry {
                 warn!("exit portal icon not visible, abandoning run");
                 return false;
             } else {
