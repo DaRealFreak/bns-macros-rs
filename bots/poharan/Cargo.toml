@@ -12,7 +12,6 @@ OriginalFilename = "bns-poharan.exe"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-chrono = "0.4.19"
 rust-ini = "0.18"
 bns-utility = { path = "../../utility" }
 log = "0.4.16"
