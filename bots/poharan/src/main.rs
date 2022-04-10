@@ -346,6 +346,9 @@ impl Poharan {
         info!("activating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
 
+        // sleep tiny bit before switching to avoid auto combat bugging and not attacking
+        sleep(time::Duration::from_millis(100));
+
         let start = time::Instant::now();
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             // ignore warlock, who is already fighting boss 1
