@@ -261,11 +261,6 @@ impl Poharan {
         info!("wait for loading screen");
         self.wait_loading_screen();
 
-        if self.run_count > 0 {
-            info!("set camera to 0 degrees");
-            self.change_camera_to_degrees(0f32);
-        }
-
         info!("running warlock into the dungeon");
         if !self.run_into_dungeon() {
             return false;
