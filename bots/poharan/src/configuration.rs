@@ -84,7 +84,9 @@ pub(crate) fn create_ini() {
         .set("PositionThrallReady", "825,900")
         .set("ThrallReady", "0x01040E")
         .set("PositionOutOfCombat", "841,837")
-        .set("OutOfCombat", "0xA0B930");
+        .set("OutOfCombat", "0xA0B930")
+        .set("PositionPetShieldActive", "456,1014")
+        .set("PetShieldActive", "0xFDC9AF");
 
     conf.write_to_file("configuration/poharan.ini").unwrap();
 }

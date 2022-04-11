@@ -21,6 +21,7 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
+    unsafe fn pet_shield_active(&self) -> bool;
     unsafe fn open_portal(&mut self, boss: u8) -> bool;
     unsafe fn use_poharan_portal(&mut self) -> bool;
     unsafe fn move_to_poharan(&mut self, warlock: bool);
@@ -73,6 +74,10 @@ impl Dungeon for Poharan {
 
     unsafe fn out_of_combat(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
+    }
+
+    unsafe fn pet_shield_active(&self) -> bool {
+        self.pixel_matches("UserInterfacePlayer", "PositionPetShieldActive", "PetShieldActive")
     }
 
     unsafe fn open_portal(&mut self, boss: u8) -> bool {
