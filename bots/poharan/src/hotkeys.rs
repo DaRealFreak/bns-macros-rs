@@ -30,9 +30,11 @@ impl HotKeys for Poharan {
 
     /// Hotkeys to spam for 250ms after the bot killed Tae Jangum (to use f.e. Soulburn so we have it ready again on Poharan)
     unsafe fn hotkeys_after_tae_jangum(&self) {
-        for _ in 0..5 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AfterTaeJangum");
-            sleep(time::Duration::from_millis(50));
+        if self.settings.section(Some("Hotkeys")).unwrap().get("AfterTaeJangum").is_some() {
+            for _ in 0..5 {
+                press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AfterTaeJangum");
+                sleep(time::Duration::from_millis(50));
+            }
         }
     }
 
