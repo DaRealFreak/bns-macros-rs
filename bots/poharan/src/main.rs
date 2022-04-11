@@ -451,6 +451,9 @@ impl Poharan {
         info!("deactivating auto combat on the carry");
         self.hotkeys_auto_combat_toggle();
 
+        info!("using skills after Tae Jangum to have them ready during Poharan again");
+        self.hotkeys_after_tae_jangum();
+
         info!("opening portal to boss 2");
         if !self.open_portal(2) {
             info!("unable to open portal to boss 2");

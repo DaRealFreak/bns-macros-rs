@@ -101,8 +101,8 @@ impl Dungeon for Poharan {
                 break;
             }
 
-            // timeout if we couldn't activate the fly hack even after 3.5 seconds
-            if start.elapsed().as_millis() > 3500 {
+            // timeout if we couldn't activate the fly hack even after 5 seconds
+            if start.elapsed().as_millis() > 5000 {
                 warn!("ran into timeout while enabling fly hack");
                 return false;
             }
@@ -143,8 +143,8 @@ impl Dungeon for Poharan {
                 break;
             }
 
-            // timeout if we couldn't deactivate the fly hack even after 3.5 seconds
-            if start.elapsed().as_millis() > 3500 {
+            // timeout if we couldn't deactivate the fly hack even after 5 seconds
+            if start.elapsed().as_millis() > 5000 {
                 warn!("ran into timeout while disabling fly hack");
                 return false;
             }
@@ -163,9 +163,6 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn use_poharan_portal(&mut self) -> bool {
-        info!("turning camera to 0 degrees");
-        self.change_camera_to_degrees(0f32);
-
         sleep(time::Duration::from_millis(500));
 
         loop {
