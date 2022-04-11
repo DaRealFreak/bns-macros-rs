@@ -318,6 +318,12 @@ impl Poharan {
         sleep(time::Duration::from_millis(1750));
         send_key(VK_W, false);
 
+        info!("opening portal to boss 1");
+        if !self.open_portal(1) {
+            info!("unable to open portal to boss 1");
+            return false;
+        }
+
         let start = time::Instant::now();
         loop {
             if self.portal_icon_visible() {
@@ -377,6 +383,9 @@ impl Poharan {
     unsafe fn fight_boss_1(&mut self) -> bool {
         info!("activating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
+
+        // sleep tiny bit before switching to avoid auto combat bugging and not attacking
+        sleep(time::Duration::from_millis(100));
 
         let start = time::Instant::now();
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
@@ -441,6 +450,12 @@ impl Poharan {
 
         info!("deactivating auto combat on the carry");
         self.hotkeys_auto_combat_toggle();
+
+        info!("opening portal to boss 2");
+        if !self.open_portal(2) {
+            info!("unable to open portal to boss 2");
+            return false;
+        }
 
         info!("wait to get out of combat");
         loop {
@@ -733,6 +748,9 @@ impl Poharan {
             if self.in_f8_lobby() || self.in_loading_screen() {
                 break;
             }
+
+            // disable fly hack if we ran into a timeout while disabling it
+            self.hotkeys_fly_hack_disable();
 
             // send every possibly required key to get out of quest windows/dialogues
             for _ in 0..10 {

@@ -1,5 +1,5 @@
 [package]
-name = "bns-poharan"
+name = "bns-aerodrome-exp"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"
@@ -8,7 +8,7 @@ build = "build.rs"
 winres = "^0.1"
 
 [package.metadata.winres]
-OriginalFilename = "bns-poharan.exe"
+OriginalFilename = "bns-aerodome-exp.exe"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

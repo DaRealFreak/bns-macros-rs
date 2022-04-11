@@ -21,7 +21,7 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
-    unsafe fn open_portal(&mut self, boss: u8);
+    unsafe fn open_portal(&mut self, boss: u8) -> bool;
     unsafe fn use_poharan_portal(&mut self) -> bool;
     unsafe fn move_to_poharan(&mut self, warlock: bool);
     unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool;
@@ -75,7 +75,7 @@ impl Dungeon for Poharan {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
     }
 
-    unsafe fn open_portal(&mut self, boss: u8) {
+    unsafe fn open_portal(&mut self, boss: u8) -> bool {
         let portal_start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
@@ -95,12 +95,16 @@ impl Dungeon for Poharan {
             self.activity.check_game_activity();
 
             // if the position change from the original position is > 200 break, we properly got teleported
-            if original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32) > 200f32 {
+            let position_difference = original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32);
+            if position_difference > 200f32 {
+                info!("difference to the original position is more than 200 ({})", position_difference);
                 break;
             }
 
-            if start.elapsed().as_millis() > 2000 {
-                break;
+            // timeout if we couldn't activate the fly hack even after 3.5 seconds
+            if start.elapsed().as_millis() > 3500 {
+                warn!("ran into timeout while enabling fly hack");
+                return false;
             }
 
             if boss == 1 {
@@ -133,12 +137,16 @@ impl Dungeon for Poharan {
             self.activity.check_game_activity();
 
             // if the position change from the original position is now less than 200 we're back to our original position
-            if original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32) < 200f32 {
+            let position_difference = original_pos - (self.get_player_pos_x() * -1.0f32 + self.get_player_pos_y() * -1.0f32);
+            if position_difference < 200f32 {
+                info!("difference to the original position is below 200 ({})", position_difference);
                 break;
             }
 
-            if start.elapsed().as_millis() > 2000 {
-                break;
+            // timeout if we couldn't deactivate the fly hack even after 3.5 seconds
+            if start.elapsed().as_millis() > 3500 {
+                warn!("ran into timeout while disabling fly hack");
+                return false;
             }
 
             self.hotkeys_fly_hack_disable();
@@ -151,6 +159,7 @@ impl Dungeon for Poharan {
         }
 
         info!("opening the portal took {}ms", portal_start.elapsed().as_millis());
+        true
     }
 
     unsafe fn use_poharan_portal(&mut self) -> bool {
@@ -218,6 +227,7 @@ impl Dungeon for Poharan {
         }
         self.animation_speed_hack(self.animation_speed());
 
+        // sleep tiny bit so sprinting doesn't bug
         sleep(time::Duration::from_millis(250));
 
         send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
