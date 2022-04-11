@@ -296,7 +296,10 @@ impl Poharan {
         self.wait_loading_screen();
 
         info!("opening portal to boss 1");
-        self.open_portal(1);
+        if !self.open_portal(1) {
+            info!("unable to open portal to boss 1");
+            return false;
+        }
 
         info!("switching to window handle {:?}", self.carry_hwnd);
         switch_to_hwnd(self.carry_hwnd);
@@ -317,12 +320,6 @@ impl Poharan {
         send_keys(vec![VK_SHIFT, VK_A], false);
         sleep(time::Duration::from_millis(1750));
         send_key(VK_W, false);
-
-        info!("opening portal to boss 1");
-        if !self.open_portal(1) {
-            info!("unable to open portal to boss 1");
-            return false;
-        }
 
         let start = time::Instant::now();
         loop {
@@ -440,7 +437,10 @@ impl Poharan {
         switch_to_hwnd(self.start_hwnd);
 
         info!("opening portal to boss 2");
-        self.open_portal(2);
+        if !self.open_portal(2) {
+            info!("unable to open portal to boss 2");
+            return false;
+        }
 
         info!("switching to window handle {:?}", self.carry_hwnd);
         switch_to_hwnd(self.carry_hwnd);
@@ -453,12 +453,6 @@ impl Poharan {
 
         info!("using skills after Tae Jangum to have them ready during Poharan again");
         self.hotkeys_after_tae_jangum();
-
-        info!("opening portal to boss 2");
-        if !self.open_portal(2) {
-            info!("unable to open portal to boss 2");
-            return false;
-        }
 
         info!("wait to get out of combat");
         loop {
