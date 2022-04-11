@@ -13,6 +13,7 @@ pub(crate) trait UserInterface {
     unsafe fn in_loading_screen(&self) -> bool;
     unsafe fn out_of_loading_screen(&self) -> bool;
     unsafe fn menu_exit(&self);
+    unsafe fn menu_leave_party(&self);
 }
 
 impl UserInterface for Poharan {
@@ -51,6 +52,17 @@ impl UserInterface for Poharan {
     unsafe fn menu_exit(&self) {
         let settings = self.settings.section(Some("UserInterfaceGeneral")).unwrap();
         let position_enter = settings.get("PositionExit").unwrap().split(",");
+        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
+        sleep(time::Duration::from_millis(50));
+        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+    }
+
+    unsafe fn menu_leave_party(&self) {
+        let settings = self.settings.section(Some("UserInterfaceGeneral")).unwrap();
+        let position_enter = settings.get("PositionLeaveParty").unwrap().split(",");
         let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
 
         SetCursorPos(coordinates_enter[0], coordinates_enter[1]);

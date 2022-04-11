@@ -251,8 +251,15 @@ impl Dungeon for Poharan {
         self.change_camera_to_degrees(270f32);
 
         info!("waiting to get out of combat for consistent walking speed");
+        let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 120 {
+                warn!("unable to get out of combat, leave party to start failsafe");
+                self.leave_party();
+                return false;
+            }
 
             if self.out_of_combat() {
                 break;
