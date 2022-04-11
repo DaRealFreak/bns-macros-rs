@@ -163,9 +163,6 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn use_poharan_portal(&mut self) -> bool {
-        info!("turning camera to 0 degrees");
-        self.change_camera_to_degrees(0f32);
-
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
         sleep(time::Duration::from_millis(350));
