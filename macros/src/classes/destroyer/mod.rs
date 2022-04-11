@@ -127,7 +127,7 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            sleep(time::Duration::from_millis(50));
+            sleep(time::Duration::from_millis(45));
 
             let mut in_soulburn = false;
 
@@ -142,7 +142,7 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            sleep(time::Duration::from_millis(90));
+            sleep(time::Duration::from_millis(95));
 
             // sleep 170ms during SB due to awk mc having 18s cd instead of 24s
             // on 40 ms the script would try to anicancel cleave causing a delay after cleave before mc
