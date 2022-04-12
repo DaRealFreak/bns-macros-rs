@@ -21,6 +21,7 @@ pub(crate) trait Dungeon {
     unsafe fn dynamic_visible(&self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
+    unsafe fn pet_shield_active(&self) -> bool;
     unsafe fn open_portal(&mut self, boss: u8) -> bool;
     unsafe fn use_poharan_portal(&mut self) -> bool;
     unsafe fn move_to_poharan(&mut self, warlock: bool);
@@ -73,6 +74,10 @@ impl Dungeon for Poharan {
 
     unsafe fn out_of_combat(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionOutOfCombat", "OutOfCombat")
+    }
+
+    unsafe fn pet_shield_active(&self) -> bool {
+        self.pixel_matches("UserInterfacePlayer", "PositionPetShieldActive", "PetShieldActive")
     }
 
     unsafe fn open_portal(&mut self, boss: u8) -> bool {
@@ -263,8 +268,15 @@ impl Dungeon for Poharan {
         self.change_camera_to_degrees(270f32);
 
         info!("waiting to get out of combat for consistent walking speed");
+        let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 120 {
+                warn!("unable to get out of combat, leave party to start failsafe");
+                self.leave_party();
+                return false;
+            }
 
             if self.out_of_combat() {
                 break;

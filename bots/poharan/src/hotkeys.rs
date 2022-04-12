@@ -30,9 +30,11 @@ impl HotKeys for Poharan {
 
     /// Hotkeys to spam for 250ms after the bot killed Tae Jangum (to use f.e. Soulburn so we have it ready again on Poharan)
     unsafe fn hotkeys_after_tae_jangum(&self) {
-        for _ in 0..5 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AfterTaeJangum");
-            sleep(time::Duration::from_millis(50));
+        if self.settings.section(Some("Hotkeys")).unwrap().get("AfterTaeJangum").is_some() {
+            for _ in 0..5 {
+                press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "AfterTaeJangum");
+                sleep(time::Duration::from_millis(50));
+            }
         }
     }
 
@@ -79,13 +81,20 @@ impl HotKeys for Poharan {
 }
 
 pub(crate) unsafe fn press_keys(properties: &Properties, hotkey: &str) {
+    // skip if hotkey is not defined
+    if properties.get(hotkey).is_none() {
+        return;
+    }
+
     let raw_hotkeys = properties.get(hotkey).unwrap().split(",");
     let mut keys: Vec<VIRTUAL_KEY> = vec![];
 
     for hotkey in raw_hotkeys {
         let hotkey_without_prefix = hotkey.trim_start_matches("0x");
-        let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
-        keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        if hotkey != "" {
+            let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
+            keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        }
     }
 
     send_keys(keys.clone(), true);

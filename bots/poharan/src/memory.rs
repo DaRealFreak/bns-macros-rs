@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time;
 use ini::Properties;
 use windows::Win32::Foundation::{HANDLE, HWND};
 use windows::Win32::System::Diagnostics::ToolHelp::MODULEENTRY32;
@@ -108,7 +110,10 @@ impl Memory for Poharan {
     }
 
     unsafe fn change_camera_to_degrees(&mut self, degree: f32) {
-        self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_camera_yaw(), degree);
+        for _ in 0..2 {
+            self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_camera_yaw(), degree);
+            sleep(time::Duration::from_millis(100));
+        }
     }
 
     unsafe fn get_player_pos_x(&mut self) -> f32 {
