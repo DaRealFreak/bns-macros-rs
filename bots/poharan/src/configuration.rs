@@ -19,7 +19,8 @@ pub(crate) fn create_ini() {
         .set("OffsetsPlayerY", "0x30,0x2C0,0x130,0x1F4")
         .set("OffsetsPlayerZ", "0x30,0x2C0,0x130,0x1F8")
         .set("BaseAddressDungeon", "0x074B5AF0")
-        .set("OffsetsDungeonStage", "0xA0,0x8D8,0x28,0x1D0");
+        .set("OffsetsDungeonStage", "0xA0,0x8D8,0x28,0x1D0")
+        .set("OffsetsLobbyNumber", "0xA0,0x8D8,0x28,0x20");
 
     // all hotkeys, to find the used keys check
     // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
