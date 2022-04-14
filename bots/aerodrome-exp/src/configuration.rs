@@ -10,7 +10,7 @@ pub(crate) fn create_ini() {
         .set("LogFile", "aerodrome_exp.log");
 
     conf.with_section(Some("Pointers"))
-        .set("BaseAddressPlayer", "0x07537B40")
+        .set("BaseAddressPlayer", "0x07536B40")
         .set("OffsetsAnimationSpeed", "0x30,0x2C0,0x98")
         .set("OffsetsCameraYaw", "");
 
