@@ -417,6 +417,18 @@ impl Poharan {
             self.activity.check_game_activity();
         }
 
+        info!("sleep to let carry pick up possible loot or finish leftover mobs");
+        sleep(time::Duration::from_secs(3));
+
+        info!("sleep to let carry run into the return position");
+        sleep(self.get_sleep_time(6000, false));
+
+        info!("deactivating auto combat on the carry");
+        self.hotkeys_auto_combat_toggle();
+
+        info!("using skills after Tae Jangum to have them ready during Poharan again");
+        self.hotkeys_after_tae_jangum();
+
         info!("switching to window handle {:?}", self.start_hwnd);
         switch_to_hwnd(self.start_hwnd);
 
@@ -428,15 +440,6 @@ impl Poharan {
 
         info!("switching to window handle {:?}", self.carry_hwnd);
         switch_to_hwnd(self.carry_hwnd);
-
-        info!("sleep to let warlock run into the return position");
-        sleep(self.get_sleep_time(6000, false));
-
-        info!("deactivating auto combat on the carry");
-        self.hotkeys_auto_combat_toggle();
-
-        info!("using skills after Tae Jangum to have them ready during Poharan again");
-        self.hotkeys_after_tae_jangum();
 
         info!("wait to get out of combat");
         loop {
