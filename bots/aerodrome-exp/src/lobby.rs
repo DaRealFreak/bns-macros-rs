@@ -73,6 +73,10 @@ impl Lobby for AerodromeExp {
         }
 
         sleep(time::Duration::from_millis(200));
+        if !self.stage_selected() {
+            return self.select_stage();
+        }
+
         let stage = configuration.get("FarmStage").unwrap();
         send_string(stage.to_string(), false);
         sleep(time::Duration::from_millis(150));
