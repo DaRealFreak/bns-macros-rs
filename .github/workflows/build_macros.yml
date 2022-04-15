@@ -1,4 +1,4 @@
-name: build
+name: 'build - macros'
 on:
   push:
     paths:
