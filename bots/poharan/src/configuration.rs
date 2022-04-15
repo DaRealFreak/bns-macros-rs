@@ -6,7 +6,6 @@ pub(crate) fn create_ini() {
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
-        .set("Clients", "Lunar Tempest,Shãrk")
         .set("AnimationSpeedHackValue", "8")
         .set("SlowAnimationSpeedHackValue", "5.5")
         .set("LogFile", "poharan_multibox.log");
@@ -37,24 +36,22 @@ pub(crate) fn create_ini() {
 
     // user interface settings related to the lobby
     conf.with_section(Some("UserInterfaceLobby"))
+        .set("PositionInF8Lobby", "23,34")
+        .set("InF8Lobby", "0xCECECF")
+        .set("PositionFindLobby", "1800,1025")
+        .set("PositionHasJoinLobbyDialogue", "985,602")
+        .set("HasJoinLobbyDialogue", "0xFFFFFF")
+        .set("PositionIsReady", "940,1036")
+        .set("IsReady", "0x898989,0xFFFFFF")
+        .set("PositionReady", "962,1037")
         .set("PositionDungeonSelected", "1686,317")
         .set("DungeonSelected", "0x3E261C")
         .set("PositionClickDungeon", "1561,666")
         .set("PositionStageSelected", "1732,485")
         .set("StageSelected", "0xE2E2E2")
         .set("PositionStageRightSide", "1747,478")
-        .set("PositionReady", "962,1037")
-        .set("PositionChat", "160,883")
         .set("PositionEnter", "990,1036")
-        .set("Enter", "0xFFFFFF")
-        .set("PositionHasInvite", "1265,964")
-        .set("HasInvite", "0xFFFFFF")
-        .set("PositionHasPartyJoinRequest", "886,588")
-        .set("HasPartyJoinRequest", "0xFFFFFF")
-        .set("PositionIsReady", "940,1036")
-        .set("IsReady", "0x898989,0xFFFFFF")
-        .set("PositionInF8Lobby", "23,34")
-        .set("InF8Lobby", "0xCECECF");
+        .set("Enter", "0xFFFFFF");
 
     // user interface settings related to the party management
     conf.with_section(Some("UserInterfaceGeneral"))
