@@ -1,0 +1,28 @@
+name: 'build - aerodrome'
+on:
+  push:
+    paths:
+      - '/bots/aerodrome/**.rs'
+      - '/bots/aerodrome/**.toml'
+      - '/bots/aerodrome/**.lock'
+  pull_request:
+    paths:
+      - '/bots/aerodrome/**.rs'
+      - '/bots/aerodrome/**.toml'
+      - '/bots/aerodrome/**.lock'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Aerodrome Release
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        platform: [windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features --package bns-aerodrome --bin bns-aerodrome
