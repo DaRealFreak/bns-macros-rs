@@ -10,9 +10,10 @@ on:
       - '/macros/**.rs'
       - '/macros/**.toml'
       - '/macros/**.lock'
+  workflow_dispatch:
 
 jobs:
-  build_and_test:
+  build:
     name: Build Macro Release
     timeout-minutes: 30
     strategy:
