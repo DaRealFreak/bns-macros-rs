@@ -386,7 +386,7 @@ impl Poharan {
         }
 
         info!("sleep to let warlock pick up possible loot or finish leftover mobs");
-        sleep(time::Duration::from_millis(4000));
+        sleep(time::Duration::from_secs(3));
 
         info!("sleep to let warlock run into the return position");
         sleep(self.get_sleep_time(6000, false));
