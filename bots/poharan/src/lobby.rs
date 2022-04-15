@@ -138,6 +138,10 @@ impl Lobby for Poharan {
         }
 
         sleep(time::Duration::from_millis(200));
+        if !self.stage_selected() {
+            return self.select_stage();
+        }
+
         send_string(self.farm_stage().to_string(), false);
         sleep(time::Duration::from_millis(150));
     }
