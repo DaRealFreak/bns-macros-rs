@@ -10,9 +10,10 @@ on:
       - '/bots/poharan/**.rs'
       - '/bots/poharan/**.toml'
       - '/bots/poharan/**.lock'
+  workflow_dispatch:
 
 jobs:
-  build_and_test:
+  build:
     name: Build Poharan Release
     timeout-minutes: 30
     strategy:

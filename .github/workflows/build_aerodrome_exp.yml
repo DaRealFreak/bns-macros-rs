@@ -10,9 +10,10 @@ on:
       - '/bots/aerodrome-exp/**.rs'
       - '/bots/aerodrome-exp/**.toml'
       - '/bots/aerodrome-exp/**.lock'
+  workflow_dispatch:
 
 jobs:
-  build_and_test:
+  build:
     name: Build Aerodrome Exp Release
     timeout-minutes: 30
     strategy:
