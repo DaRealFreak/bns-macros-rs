@@ -1,4 +1,4 @@
-name: Poharan
+name: build
 on:
   push:
     paths:

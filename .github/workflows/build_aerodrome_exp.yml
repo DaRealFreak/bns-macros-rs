@@ -1,4 +1,4 @@
-name: AerodromeExp
+name: build
 on:
   push:
     paths:

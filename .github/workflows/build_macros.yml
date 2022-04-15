@@ -1,4 +1,4 @@
-name: Macros
+name: build
 on:
   push:
     paths:
