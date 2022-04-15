@@ -144,8 +144,6 @@ impl Poharan {
 
     /// full lobby functionality, invite players, accept invites, select dungeon/stage and enter the dungeon
     unsafe fn enter_lobby(&mut self) {
-        let configuration = self.settings.section(Some("Configuration")).unwrap();
-
         info!("entering Lobby");
 
         info!("switching to window handle {:?}", self.start_hwnd);
@@ -164,19 +162,9 @@ impl Poharan {
             sleep(time::Duration::from_millis(100));
         }
         info!("found lobby screen");
+        let lobby_number = self.get_player_lobby_number(self.start_hwnd);
 
-        self.open_chat();
-        sleep(time::Duration::from_millis(150));
-        for player in self.clients() {
-            info!("inviting player \"{}\"", player);
-            for _ in 0..2 {
-                self.invite_player(player.clone());
-            }
-        }
-
-        // let the other clients receive the invite first
-        sleep(time::Duration::from_millis(400));
-
+        info!("try to join lobby {} with clients", lobby_number);
         for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
             // ignore starting window hwnd since he handles the invites
             if hwnd.0 == self.start_hwnd.0 {
@@ -198,11 +186,7 @@ impl Poharan {
                 self.activity.check_game_activity();
             }
             info!("found lobby screen");
-
-            if self.has_player_invite() {
-                info!("accepting lobby invite");
-                self.accept_lobby_invite();
-            }
+            self.join_lobby(lobby_number.to_string());
 
             if !self.is_player_ready() {
                 info!("readying up");
@@ -224,7 +208,7 @@ impl Poharan {
         info!("selecting dungeon");
         self.select_dungeon();
 
-        info!("selecting stage {}", configuration.get("FarmStage").unwrap());
+        info!("selecting stage {}", self.farm_stage());
         self.select_stage();
 
         info!("moving to dungeon");

@@ -1,5 +1,6 @@
 use std::thread::sleep;
 use std::time;
+
 use ini::Properties;
 use windows::Win32::Foundation::{HANDLE, HWND};
 use windows::Win32::System::Diagnostics::ToolHelp::MODULEENTRY32;
@@ -27,12 +28,14 @@ pub(crate) trait Memory {
     unsafe fn offsets_player_z(&self) -> Vec<u64>;
     unsafe fn base_address_dungeon(&self) -> u64;
     unsafe fn offsets_dungeon_stage(&self) -> Vec<u64>;
+    unsafe fn offsets_lobby_number(&self) -> Vec<u64>;
     unsafe fn animation_speed_hack(&mut self, speed: f32);
     unsafe fn change_camera_to_degrees(&mut self, degree: f32);
     unsafe fn get_player_pos_x(&mut self) -> f32;
     unsafe fn get_player_pos_y(&mut self) -> f32;
     unsafe fn get_player_pos_z(&mut self) -> f32;
     unsafe fn set_dungeon_stage(&mut self);
+    unsafe fn get_player_lobby_number(&mut self, hwnd: HWND) -> u64;
 }
 
 impl Memory for Poharan {
@@ -105,6 +108,10 @@ impl Memory for Poharan {
         offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsDungeonStage")
     }
 
+    unsafe fn offsets_lobby_number(&self) -> Vec<u64> {
+        offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsLobbyNumber")
+    }
+
     unsafe fn animation_speed_hack(&mut self, speed: f32) {
         self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_animation_speed(), speed);
     }
@@ -134,6 +141,10 @@ impl Memory for Poharan {
         let stage = stage_string.parse::<u32>().unwrap();
 
         self.change_memory_value(GetForegroundWindow(), self.base_address_dungeon(), self.offsets_dungeon_stage(), stage);
+    }
+
+    unsafe fn get_player_lobby_number(&mut self, hwnd: HWND) -> u64 {
+        self.read_memory_value(hwnd, self.base_address_dungeon(), self.offsets_lobby_number(), 0u64)
     }
 }
 
