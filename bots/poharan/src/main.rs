@@ -164,7 +164,7 @@ impl Poharan {
         info!("found lobby screen");
         let lobby_number = self.get_player_lobby_number(self.start_hwnd);
 
-        info!("try to join lobby {} with clients", lobby_number);
+        info!("trying to join lobby {} with clients", lobby_number);
         for hwnd in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()) {
             // ignore starting window hwnd since he handles the invites
             if hwnd.0 == self.start_hwnd.0 {
@@ -176,17 +176,24 @@ impl Poharan {
                 warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
                 exit(-1);
             }
+            sleep(time::Duration::from_micros(250));
 
-            info!("waiting for lobby screen");
+            // repeat joining lobby until the lobby number of the client matches the wl lobby number
             loop {
-                if self.in_f8_lobby() {
+                self.activity.check_game_activity();
+
+                // in case the switch to the HWND failed due to lags while switching to the HWND during loading screens we force a switch again
+                if GetForegroundWindow().0 != hwnd.0 {
+                    warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
+                    switch_to_hwnd(hwnd);
+                }
+
+                if self.get_player_lobby_number(hwnd) == lobby_number {
                     break;
                 }
 
-                self.activity.check_game_activity();
+                self.join_lobby(lobby_number.to_string());
             }
-            info!("found lobby screen");
-            self.join_lobby(lobby_number.to_string());
 
             if !self.is_player_ready() {
                 info!("readying up");
