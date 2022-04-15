@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, VK_RETURN, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, VK_RETURN};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::{move_mouse, send_key, send_string};
