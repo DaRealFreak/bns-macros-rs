@@ -1,0 +1,28 @@
+name: Macros
+on:
+  push:
+    paths:
+      - '/macros/**.rs'
+      - '/macros/**.toml'
+      - '/macros/**.lock'
+  pull_request:
+    paths:
+      - '/macros/**.rs'
+      - '/macros/**.toml'
+      - '/macros/**.lock'
+
+jobs:
+  build_and_test:
+    name: Build Macro Release
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        # macos-latest is too expensive for monthly limit, don't build on it while repo is private
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features --package bns-macros --bin bns-macros
