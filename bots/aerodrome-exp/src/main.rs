@@ -32,10 +32,12 @@ mod memory;
 pub(crate) struct AerodromeExp {
     client_info: HashMap<isize, ProcessInformation>,
     activity: GameActivity,
-    run_count: u128,
+    run_count: u64,
+    gained_exp: u64,
     successful_runs: Vec<u128>,
     failed_runs: Vec<u128>,
     run_start_timestamp: std::time::Instant,
+    run_start_exp: u64,
     settings: Ini,
 }
 
@@ -51,9 +53,11 @@ impl AerodromeExp {
             client_info: HashMap::new(),
             activity: GameActivity::new("Blade & Soul"),
             run_count: 0,
+            gained_exp: 0,
             successful_runs: vec![],
             failed_runs: vec![],
             run_start_timestamp: time::Instant::now(),
+            run_start_exp: 0,
             settings: test,
         }
     }
@@ -83,6 +87,7 @@ impl AerodromeExp {
                 self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
                 info!("run took {:?} seconds to complete", self.run_start_timestamp.elapsed().as_secs());
             }
+            self.gained_exp += self.current_exp() - self.run_start_exp;
             self.run_count += 1;
             self.log_statistics();
         }
@@ -165,6 +170,8 @@ impl AerodromeExp {
 
         info!("wait for loading screen");
         self.wait_loading_screen();
+
+        self.run_start_exp = self.current_exp();
 
         info!("running into the dungeon");
         if !self.run_into_dungeon() {
@@ -345,7 +352,7 @@ impl AerodromeExp {
         true
     }
 
-    fn log_statistics(&self) {
+    unsafe fn log_statistics(&mut self) {
         let fail_rate = self.failed_runs.len() as f64 / self.run_count as f64;
         let success_rate = 1.0 - fail_rate as f64;
         let mut sum: u128 = self.successful_runs.iter().sum();
@@ -356,8 +363,12 @@ impl AerodromeExp {
         let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
         let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
 
+        let average_exp_per_hour = expected_successful_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
+        let next_level = (self.next_level_exp() as f64 - self.current_exp() as f64) / (if average_exp_per_hour > 0f64 { average_exp_per_hour } else { 1f64 });
+
         info!("runs done: {} (died in {} out of {} runs ({:.2}%), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
-        info!("expected runs per hour: {}", expected_successful_runs_per_hour);
+        info!("gained exp: {}, total gained exp: {}, expected exp per hour: {:.2}, expected level up in {:.2} hours", (self.current_exp() - self.run_start_exp), self.gained_exp, average_exp_per_hour, next_level);
+        info!("expected runs per hour: {:.2}", expected_successful_runs_per_hour);
     }
 
     unsafe fn fail_safe(&self) {
