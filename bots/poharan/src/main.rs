@@ -93,7 +93,7 @@ impl Poharan {
                 }
 
                 info!("starting fail safe for the warlock");
-                self.fail_safe();
+                self.fail_safe(self.start_hwnd);
 
                 for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
                     // ignore warlock, who already exited to the lobby
@@ -108,7 +108,7 @@ impl Poharan {
                     }
 
                     info!("starting fail safe for client {}", index + 1);
-                    self.fail_safe();
+                    self.fail_safe(hwnd.to_owned());
                 }
 
                 self.enter_lobby();
@@ -733,7 +733,7 @@ impl Poharan {
         info!("expected runs per hour: {}", expected_successful_runs_per_hour);
     }
 
-    unsafe fn fail_safe(&self) {
+    unsafe fn fail_safe(&self, hwnd: HWND) {
         if self.in_loading_screen() {
             info!("wait out loading screen");
         }
@@ -748,6 +748,12 @@ impl Poharan {
 
         loop {
             self.activity.check_game_activity();
+
+            // in case the switch to the HWND failed due to lags while switching to the HWND during loading screens we force a switch again
+            if GetForegroundWindow().0 != hwnd.0 {
+                warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
+                switch_to_hwnd(hwnd);
+            }
 
             if self.in_f8_lobby() || self.in_loading_screen() {
                 break;
