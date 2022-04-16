@@ -452,7 +452,7 @@ impl Poharan {
         loop {
             self.activity.check_game_activity();
 
-            if self.out_of_combat() && !self.pet_shield_active() {
+            if self.out_of_combat() {
                 break;
             }
 
@@ -485,7 +485,18 @@ impl Poharan {
         send_key(VK_S, false);
 
         send_key(VK_A, true);
-        sleep(self.get_sleep_time(4200, false));
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_x() >= 11685f32 {
+                break;
+            }
+
+            if start.elapsed().as_millis() >= self.get_sleep_time(4200, false).as_millis() {
+                break;
+            }
+        }
         send_key(VK_A, false);
 
         send_key(VK_W, true);
@@ -500,16 +511,44 @@ impl Poharan {
         sleep(self.get_sleep_time(12000, false));
         send_key(VK_D, false);
 
-        info!("getting into combat for consistent walking distance");
-        self.hotkeys_get_into_combat();
-
         send_key(VK_A, true);
         sleep(self.get_sleep_time(400, false));
         send_key(VK_A, false);
 
         info!("progressing onto the bridge");
+
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(11000, false));
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_y() > -32890f32 {
+                info!("reached first position on the bridge, sleep 1 sec to fetch aggro of the force master");
+                break;
+            }
+
+            if start.elapsed().as_millis() > self.get_sleep_time(5500, false).as_millis() {
+                break;
+            }
+        }
+        send_key(VK_W, false);
+
+        sleep(time::Duration::from_secs(1));
+
+        send_key(VK_W, true);
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_y() > -31300f32 {
+                info!("reached second position on the bridge");
+                break;
+            }
+
+            if start.elapsed().as_millis() > self.get_sleep_time(6500, false).as_millis() {
+                break;
+            }
+        }
         send_key(VK_W, false);
 
         info!("activating auto combat on the warlock");
