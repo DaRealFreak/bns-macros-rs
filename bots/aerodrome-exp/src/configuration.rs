@@ -5,7 +5,7 @@ pub(crate) fn create_ini() {
 
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
-        .set("FarmStage", "41")
+        .set("FarmStage", "61")
         .set("AnimationSpeedHackValue", "5.5")
         .set("LogFile", "aerodrome_exp.log");
 
