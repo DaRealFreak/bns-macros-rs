@@ -12,7 +12,10 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("Pointers"))
         .set("BaseAddressPlayer", "0x07536B40")
         .set("OffsetsAnimationSpeed", "0x30,0x2C0,0x98")
-        .set("OffsetsCameraYaw", "");
+        .set("OffsetsCameraYaw", "")
+        .set("BaseAddressUserInterface", "0x074B5AF0")
+        .set("OffsetsExp", "0x78,0x118,0x998")
+        .set("OffsetsNextLevel", "0x78,0x118,0x9D0");
 
     // all hotkeys, to find the used keys check
     // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
