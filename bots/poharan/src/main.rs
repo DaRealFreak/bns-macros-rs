@@ -414,7 +414,7 @@ impl Poharan {
         loop {
             self.activity.check_game_activity();
 
-            if self.out_of_combat() && !self.pet_shield_active() {
+            if self.out_of_combat() {
                 break;
             }
 
