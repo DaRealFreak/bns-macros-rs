@@ -347,12 +347,16 @@ impl Poharan {
             }
         }
 
-        info!("get into combat for fixed movement speed");
-        self.hotkeys_get_into_combat();
-
         info!("move into position for boss 1");
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(6500, false));
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_y() > -36410f32 {
+                info!("reached y position for Tae Jangum");
+                break;
+            }
+        }
         send_key(VK_W, false);
 
         send_key(VK_D, true);
@@ -527,7 +531,7 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_millis() > self.get_sleep_time(5500, false).as_millis() {
+            if start.elapsed().as_millis() > self.get_sleep_time(15000, false).as_millis() {
                 break;
             }
         }
@@ -545,7 +549,7 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_millis() > self.get_sleep_time(6500, false).as_millis() {
+            if start.elapsed().as_millis() > self.get_sleep_time(15000, false).as_millis() {
                 break;
             }
         }
