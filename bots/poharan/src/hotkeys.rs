@@ -9,7 +9,6 @@ use bns_utility::send_keys;
 use crate::Poharan;
 
 pub(crate) trait HotKeys {
-    unsafe fn hotkeys_get_into_combat(&self);
     unsafe fn hotkeys_after_tae_jangum(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
@@ -21,12 +20,6 @@ pub(crate) trait HotKeys {
 }
 
 impl HotKeys for Poharan {
-    /// Hotkeys to get the player into combat, should not give you movement speed since that would conflict with the walking paths
-    unsafe fn hotkeys_get_into_combat(&self) {
-        for _ in 0..5 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
-        }
-    }
 
     /// Hotkeys to spam for 250ms after the bot killed Tae Jangum (to use f.e. Soulburn so we have it ready again on Poharan)
     unsafe fn hotkeys_after_tae_jangum(&self) {
