@@ -448,11 +448,11 @@ impl AerodromeExp {
         time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
     }
 
-    unsafe fn get_combat_time(&self) -> u32 {
+    unsafe fn get_combat_time(&self) -> u64 {
         let section_settings = self.settings.section(Some("Configuration")).unwrap();
         let position_settings = section_settings.get("CombatTime").unwrap();
 
-        position_settings.parse::<u32>().unwrap()
+        position_settings.parse::<u64>().unwrap()
     }
 }
 
