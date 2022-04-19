@@ -298,17 +298,23 @@ impl AerodromeExp {
         loop {
             self.activity.check_game_activity();
 
-            if start.elapsed().as_millis() > 2500 {
+            if start.elapsed().as_millis() > 3000 {
                 self.hotkeys_cc_dummies();
                 sleep(time::Duration::from_millis(100));
             }
 
-            if start.elapsed().as_secs() > 15 {
+            if start.elapsed().as_millis() > 6000 {
+                self.hotkeys_cc_dummies_2();
+                sleep(time::Duration::from_millis(100));
+            }
+
+            if start.elapsed().as_secs() > self.get_combat_time() {
                 break;
             }
 
             if self.revive_visible() {
                 warn!("died before timeout, counting run as failure");
+                self.hotkeys_auto_combat_toggle();
                 return self.leave_dungeon(false);
             }
         }
@@ -440,6 +446,13 @@ impl AerodromeExp {
 
     unsafe fn get_sleep_time(&self, original_time: u64) -> time::Duration {
         time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
+    }
+
+    unsafe fn get_combat_time(&self) -> u32 {
+        let section_settings = self.settings.section(Some("Configuration")).unwrap();
+        let position_settings = section_settings.get("CombatTime").unwrap();
+
+        position_settings.parse::<u32>().unwrap()
     }
 }
 

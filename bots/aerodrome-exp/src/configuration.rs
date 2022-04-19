@@ -6,6 +6,7 @@ pub(crate) fn create_ini() {
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "60")
+        .set("CombatTime", "17")
         .set("AnimationSpeedHackValue", "5.5")
         .set("LogFile", "aerodrome_exp.log");
 
@@ -26,6 +27,7 @@ pub(crate) fn create_ini() {
         .set("UseRepairTools", "0x37")
         .set("DummyOpener", "0x09,0x33")
         .set("CcDummies", "0x43,0x5A")
+        .set("CcDummies2", "0x33")
         .set("ToggleAutoCombat", "0xA0,0x73")
         .set("CheatEngineSpeedHackOn", "0x91")
         .set("CheatEngineSpeedHackOff", "0x63")
