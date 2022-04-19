@@ -369,6 +369,7 @@ impl Aerodrome {
             send_key(VK_W, true);
 
             let mut sprinting = false;
+            let start = time::Instant::now();
             loop {
                 self.activity.check_game_activity();
 
@@ -378,6 +379,11 @@ impl Aerodrome {
                     sleep(time::Duration::from_millis(2));
                     send_key(VK_SHIFT, false);
                     sprinting = true;
+                }
+
+                if start.elapsed().as_secs() > 60 {
+                    warn!("ran into a timeout");
+                    return false;
                 }
 
                 if self.get_player_pos_x() > 30900f32 {
@@ -439,6 +445,7 @@ impl Aerodrome {
             send_key(VK_W, true);
 
             let mut sprinting = false;
+            let start = time::Instant::now();
             loop {
                 self.activity.check_game_activity();
 
@@ -448,6 +455,11 @@ impl Aerodrome {
                     sleep(time::Duration::from_millis(2));
                     send_key(VK_SHIFT, false);
                     sprinting = true;
+                }
+
+                if start.elapsed().as_secs() > 60 {
+                    warn!("ran into a timeout");
+                    return false;
                 }
 
                 if self.get_player_pos_x() >= 52388f32 {

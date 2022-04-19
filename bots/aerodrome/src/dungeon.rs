@@ -191,26 +191,6 @@ impl Dungeon for Aerodrome {
         info!("turning camera to 0 degrees");
         self.change_camera_to_degrees(0f32);
 
-        info!("waiting to get out of combat for consistent walking speed");
-        let start = time::Instant::now();
-        loop {
-            self.activity.check_game_activity();
-
-            if start.elapsed().as_secs() > 120 {
-                warn!("unable to get out of combat, leave party to start failsafe");
-                self.leave_party();
-                return false;
-            }
-
-            if self.out_of_combat() {
-                break;
-            }
-
-            sleep(time::Duration::from_millis(100));
-        }
-
-        sleep(time::Duration::from_millis(250));
-
         send_keys(vec![VK_A, VK_W], true);
         let start = time::Instant::now();
         loop {
@@ -229,8 +209,9 @@ impl Dungeon for Aerodrome {
             }
 
             // timeout
-            if start.elapsed().as_millis() > 3500 {
-                break;
+            if start.elapsed().as_millis() > 4500 {
+                warn!("unable to get player into position, abandoning run");
+                return false;
             }
 
             sleep(time::Duration::from_millis(25));
@@ -291,8 +272,14 @@ impl Dungeon for Aerodrome {
         }
 
         info!("wait for loading screen");
+        let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 20 {
+                warn!("unable to find loading screen, abandoning run");
+                return false;
+            }
 
             if self.in_loading_screen() {
                 break;
