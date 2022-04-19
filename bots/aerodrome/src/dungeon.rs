@@ -16,6 +16,7 @@ pub(crate) trait Dungeon {
     unsafe fn exit_portal_icon_visible(&self) -> bool;
     unsafe fn bonus_reward_selection_visible(&self) -> bool;
     unsafe fn revive_visible(&self) -> bool;
+    unsafe fn move_to_bulmalo(&mut self) -> bool;
     unsafe fn move_to_maximon(&mut self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
@@ -49,6 +50,37 @@ impl Dungeon for Aerodrome {
 
     unsafe fn revive_visible(&self) -> bool {
         self.pixel_matches("UserInterfacePlayer", "PositionReviveVisible", "ReviveVisible")
+    }
+
+    unsafe fn move_to_bulmalo(&mut self) -> bool {
+        send_key(VK_W, true);
+
+        let mut sprinting = false;
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() && !sprinting {
+                sleep(time::Duration::from_millis(150));
+                send_key(VK_SHIFT, true);
+                sleep(time::Duration::from_millis(2));
+                send_key(VK_SHIFT, false);
+                sprinting = true;
+            }
+
+            if start.elapsed().as_secs() > 60 {
+                warn!("ran into a timeout");
+                return false;
+            }
+
+            if self.get_player_pos_x() > 30900f32 {
+                info!("reached boss 1 position");
+                break;
+            }
+        }
+        send_key(VK_W, false);
+
+        true
     }
 
     unsafe fn move_to_maximon(&mut self) -> bool {

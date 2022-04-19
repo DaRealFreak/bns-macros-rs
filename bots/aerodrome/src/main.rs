@@ -359,6 +359,11 @@ impl Aerodrome {
         }
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // skip warlock since he'll most likely be in combat, move him last
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
             info!("switching to window handle {:?}", hwnd);
             if !switch_to_hwnd(hwnd.to_owned()) {
                 warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
@@ -366,32 +371,19 @@ impl Aerodrome {
             }
 
             info!("move client {} into position for boss 1", index + 1);
-            send_key(VK_W, true);
-
-            let mut sprinting = false;
-            let start = time::Instant::now();
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_combat() && !sprinting {
-                    sleep(time::Duration::from_millis(150));
-                    send_key(VK_SHIFT, true);
-                    sleep(time::Duration::from_millis(2));
-                    send_key(VK_SHIFT, false);
-                    sprinting = true;
-                }
-
-                if start.elapsed().as_secs() > 60 {
-                    warn!("ran into a timeout");
-                    return false;
-                }
-
-                if self.get_player_pos_x() > 30900f32 {
-                    info!("reached boss 1 position");
-                    break;
-                }
+            if !self.move_to_bulmalo() {
+                return false;
             }
-            send_key(VK_W, false);
+        }
+
+        info!("switching to window handle {:?}", self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
+            exit(-1);
+        }
+
+        if !self.move_to_bulmalo() {
+            return false;
         }
 
         self.fight_boss_1()
