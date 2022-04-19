@@ -21,10 +21,12 @@ pub(crate) trait Memory {
     unsafe fn base_address_user_interface(&self) -> u64;
     unsafe fn offsets_animation_speed(&self) -> Vec<u64>;
     unsafe fn offsets_camera_yaw(&self) -> Vec<u64>;
+    unsafe fn offsets_player_x(&self) -> Vec<u64>;
     unsafe fn offsets_current_exp(&self) -> Vec<u64>;
     unsafe fn offsets_next_level_exp(&self) -> Vec<u64>;
     unsafe fn animation_speed_hack(&mut self, speed: f32);
     unsafe fn change_camera_to_degrees(&mut self, degree: f32);
+    unsafe fn get_player_pos_x(&mut self) -> f32;
     unsafe fn current_exp(&mut self) -> u64;
     unsafe fn next_level_exp(&mut self) -> u64;
 }
@@ -83,6 +85,10 @@ impl Memory for AerodromeExp {
         offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsCameraYaw")
     }
 
+    unsafe fn offsets_player_x(&self) -> Vec<u64> {
+        offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsPlayerX")
+    }
+
     unsafe fn offsets_current_exp(&self) -> Vec<u64> {
         offset(self.settings.section(Some("Pointers")).unwrap(), "OffsetsExp")
     }
@@ -97,6 +103,10 @@ impl Memory for AerodromeExp {
 
     unsafe fn change_camera_to_degrees(&mut self, degree: f32) {
         self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_camera_yaw(), degree);
+    }
+
+    unsafe fn get_player_pos_x(&mut self) -> f32 {
+        self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_x(), 0f32)
     }
 
     unsafe fn current_exp(&mut self) -> u64 {

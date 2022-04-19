@@ -5,7 +5,7 @@ pub(crate) fn create_ini() {
 
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
-        .set("FarmStage", "61")
+        .set("FarmStage", "60")
         .set("AnimationSpeedHackValue", "5.5")
         .set("LogFile", "aerodrome_exp.log");
 
@@ -13,6 +13,7 @@ pub(crate) fn create_ini() {
         .set("BaseAddressPlayer", "0x07536B40")
         .set("OffsetsAnimationSpeed", "0x30,0x2C0,0x98")
         .set("OffsetsCameraYaw", "")
+        .set("OffsetsPlayerX", "0x30,0x2C0,0x130,0x1F0")
         .set("BaseAddressUserInterface", "0x074B5AF0")
         .set("OffsetsExp", "0x78,0x118,0x998")
         .set("OffsetsNextLevel", "0x78,0x118,0x9D0");
@@ -23,7 +24,8 @@ pub(crate) fn create_ini() {
         .set("UseSoup", "0x35")
         .set("UseExpCharm", "0x36")
         .set("UseRepairTools", "0x37")
-        .set("CcDummies", "0x5A")
+        .set("DummyOpener", "0x09,0x33")
+        .set("CcDummies", "0x43,0x5A")
         .set("ToggleAutoCombat", "0xA0,0x73")
         .set("CheatEngineSpeedHackOn", "0x91")
         .set("CheatEngineSpeedHackOff", "0x63")

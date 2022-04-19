@@ -12,6 +12,7 @@ pub(crate) trait HotKeys {
     unsafe fn hotkeys_use_soup(&self);
     unsafe fn hotkeys_use_exp_charm(&self);
     unsafe fn hotkeys_use_repair_tools(&self);
+    unsafe fn hotkeys_dummy_opener(&self);
     unsafe fn hotkeys_cc_dummies(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
@@ -30,6 +31,10 @@ impl HotKeys for AerodromeExp {
 
     unsafe fn hotkeys_use_repair_tools(&self) {
         press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "UseRepairTools");
+    }
+
+    unsafe fn hotkeys_dummy_opener(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "DummyOpener");
     }
 
     unsafe fn hotkeys_cc_dummies(&self) {
