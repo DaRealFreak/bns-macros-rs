@@ -323,9 +323,18 @@ impl Aerodrome {
                 exit(-1);
             }
 
+            info!("waiting for loading screen");
+            self.wait_loading_screen();
+
             info!("use portal to boss 1");
             let start = time::Instant::now();
             loop {
+                // in case the switch to the HWND failed due to lags while switching to the HWND during loading screens we force a switch again
+                if GetForegroundWindow().0 != hwnd.0 {
+                    warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
+                    switch_to_hwnd(hwnd.to_owned());
+                }
+
                 // earliest break possible is when we can't move anymore since we took the portal
                 if !self.out_of_combat() && hwnd.0 != self.start_hwnd.0 {
                     break;
@@ -383,30 +392,7 @@ impl Aerodrome {
     }
 
     unsafe fn fight_boss_1(&mut self) -> bool {
-        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
-            if hwnd.0 == self.start_hwnd.0 {
-                continue;
-            }
-
-            info!("switching to window handle {:?}", hwnd);
-            if !switch_to_hwnd(hwnd.to_owned()) {
-                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
-                exit(-1);
-            }
-
-            info!("activating auto combat for client {}", index + 1);
-            self.hotkeys_auto_combat_toggle();
-        }
-
-        info!("switching to window handle {:?}", self.start_hwnd);
-        if !switch_to_hwnd(self.start_hwnd) {
-            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
-            exit(-1);
-        }
-
-        info!("activating auto combat for the warlock");
-        self.hotkeys_auto_combat_toggle();
+        self.activate_auto_combat();
 
         // sleep to get into combat before checking out of combat for fight over
         sleep(time::Duration::from_secs(1));
@@ -488,6 +474,11 @@ impl Aerodrome {
 
     unsafe fn move_to_boss_2(&mut self) -> bool {
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // skip warlock since he'll most likely be in combat, move him last
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
             info!("moving client {} to Maximon", index + 1);
 
             info!("switching to window handle {:?}", hwnd);
@@ -496,56 +487,9 @@ impl Aerodrome {
                 exit(-1);
             }
 
-            // sleep tiny bit so sprinting doesn't bug
-            sleep(time::Duration::from_millis(250));
-
-            send_key(VK_W, true);
-            let mut sprinting = false;
-
-            let start = time::Instant::now();
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_combat() && !sprinting {
-                    sleep(time::Duration::from_millis(150));
-                    send_key(VK_SHIFT, true);
-                    sleep(time::Duration::from_millis(2));
-                    send_key(VK_SHIFT, false);
-                    sprinting = true;
-                }
-
-                if start.elapsed().as_secs() > 40 {
-                    warn!("timeout while running to boss 2");
-                    return false;
-                }
-
-                if self.get_player_pos_x() > 69650f32 {
-                    info!("reached position");
-                    break;
-                }
+            if !self.move_to_maximon() {
+                return false;
             }
-
-            send_key(VK_W, false);
-        }
-
-        self.fight_boss_2()
-    }
-
-    unsafe fn fight_boss_2(&mut self) -> bool {
-        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
-            if hwnd.0 == self.start_hwnd.0 {
-                continue;
-            }
-
-            info!("switching to window handle {:?}", hwnd);
-            if !switch_to_hwnd(hwnd.to_owned()) {
-                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
-                exit(-1);
-            }
-
-            info!("activating auto combat for client {}", index + 1);
-            self.hotkeys_auto_combat_toggle();
         }
 
         info!("switching to window handle {:?}", self.start_hwnd);
@@ -554,8 +498,15 @@ impl Aerodrome {
             exit(-1);
         }
 
-        info!("activating auto combat for the warlock");
-        self.hotkeys_auto_combat_toggle();
+        if !self.move_to_maximon() {
+            return false;
+        }
+
+        self.fight_boss_2()
+    }
+
+    unsafe fn fight_boss_2(&mut self) -> bool {
+        self.activate_auto_combat();
 
         let start = time::Instant::now();
         info!("wait for dynamic reward");
@@ -749,6 +700,33 @@ impl Aerodrome {
 
     unsafe fn get_sleep_time(&self, original_time: u64) -> time::Duration {
         time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
+    }
+
+    unsafe fn activate_auto_combat(&self) {
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            info!("switching to window handle {:?}", hwnd);
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
+                exit(-1);
+            }
+
+            info!("activating auto combat for client {}", index + 1);
+            self.hotkeys_auto_combat_toggle();
+        }
+
+        info!("switching to window handle {:?}", self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
+            exit(-1);
+        }
+
+        info!("activating auto combat for the warlock");
+        self.hotkeys_auto_combat_toggle();
     }
 }
 
