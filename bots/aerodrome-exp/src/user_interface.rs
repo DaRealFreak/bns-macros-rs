@@ -6,7 +6,7 @@ use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
 use bns_utility::{get_pixel, move_mouse};
 
-use crate::{Lobby, AerodromeExp};
+use crate::{AerodromeExp, Lobby};
 
 pub(crate) trait UserInterface {
     unsafe fn pixel_matches(&self, section: &str, position_setting: &str, color_setting: &str) -> bool;
