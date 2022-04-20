@@ -7,7 +7,7 @@ use std::time;
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_V, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -634,67 +634,6 @@ impl Aerodrome {
             sleep(time::Duration::from_millis(150));
 
             // open menu and click on exit
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_exit();
-        }
-    }
-
-    unsafe fn leave_party(&self) {
-        info!("trying to leave party");
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                break;
-            }
-
-            // disable fly hack if we ran into a timeout while disabling it
-            self.hotkeys_fly_hack_disable();
-
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
-            }
-
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
-
-            // open menu and click on leave party
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_leave_party();
-        }
-
-        if self.in_loading_screen() {
-            info!("in loading screen, wait out loading screen");
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_loading_screen() {
-                    break;
-                }
-            }
-        }
-
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                info!("found f8 lobby, leave party successful");
-                break;
-            }
-
-            send_keys(vec![VK_SHIFT, VK_V], true);
-            send_keys(vec![VK_SHIFT, VK_V], false);
-
-            // open menu and click on leave party
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
