@@ -1,5 +1,5 @@
 # Aerodrome Bot
-[![build](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_aerodrome.yml/badge.svg)](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_aerodrome.yml)  
+[![build - aerodrome exp](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_aerodrome_exp.yml/badge.svg)](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_aerodrome_exp.yml)  
 Bot to farm the dungeon "Aerodrome" on your preferred stage automatically. Use at your own risk, this can get you banned if NCSoft suddenly decides that they care about their game again.
 
 ## Installation
