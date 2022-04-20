@@ -1,5 +1,5 @@
 # Poharan Bot
-[![build](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_poharan.yml/badge.svg)](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_poharan.yml)  
+[![build - poharan](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_poharan.yml/badge.svg)](https://github.com/DaRealFreak/bns-macros-rs/actions/workflows/build_poharan.yml)  
 Bot to farm the dungeon "Chaos Supply Chain" on your preferred stage automatically. Use at your own risk, this can get you banned if NCSoft suddenly decides that they care about their game again.
 
 ## Installation
