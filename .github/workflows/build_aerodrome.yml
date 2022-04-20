@@ -2,14 +2,14 @@ name: 'build - aerodrome'
 on:
   push:
     paths:
-      - '/bots/aerodrome/**.rs'
-      - '/bots/aerodrome/**.toml'
-      - '/bots/aerodrome/**.lock'
+      - 'bots/aerodrome/**.rs'
+      - 'bots/aerodrome/**.toml'
+      - 'bots/aerodrome/**.lock'
   pull_request:
     paths:
-      - '/bots/aerodrome/**.rs'
-      - '/bots/aerodrome/**.toml'
-      - '/bots/aerodrome/**.lock'
+      - 'bots/aerodrome/**.rs'
+      - 'bots/aerodrome/**.toml'
+      - 'bots/aerodrome/**.lock'
   workflow_dispatch:
 
 jobs:

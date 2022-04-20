@@ -2,14 +2,14 @@ name: 'build - poharan'
 on:
   push:
     paths:
-      - '/bots/poharan/**.rs'
-      - '/bots/poharan/**.toml'
-      - '/bots/poharan/**.lock'
+      - 'bots/poharan/**.rs'
+      - 'bots/poharan/**.toml'
+      - 'bots/poharan/**.lock'
   pull_request:
     paths:
-      - '/bots/poharan/**.rs'
-      - '/bots/poharan/**.toml'
-      - '/bots/poharan/**.lock'
+      - 'bots/poharan/**.rs'
+      - 'bots/poharan/**.toml'
+      - 'bots/poharan/**.lock'
   workflow_dispatch:
 
 jobs:

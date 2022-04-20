@@ -2,14 +2,14 @@ name: 'build - aerodrome exp'
 on:
   push:
     paths:
-      - '/bots/aerodrome-exp/**.rs'
-      - '/bots/aerodrome-exp/**.toml'
-      - '/bots/aerodrome-exp/**.lock'
+      - 'bots/aerodrome-exp/**.rs'
+      - 'bots/aerodrome-exp/**.toml'
+      - 'bots/aerodrome-exp/**.lock'
   pull_request:
     paths:
-      - '/bots/aerodrome-exp/**.rs'
-      - '/bots/aerodrome-exp/**.toml'
-      - '/bots/aerodrome-exp/**.lock'
+      - 'bots/aerodrome-exp/**.rs'
+      - 'bots/aerodrome-exp/**.toml'
+      - 'bots/aerodrome-exp/**.lock'
   workflow_dispatch:
 
 jobs:
