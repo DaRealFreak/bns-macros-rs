@@ -94,7 +94,10 @@ impl AerodromeExp {
                     info!("run took {:?} seconds to complete", self.run_start_timestamp.elapsed().as_secs());
                 }
             }
-            self.gained_exp += self.current_exp() - self.run_start_exp;
+
+            if self.current_exp() > self.run_start_exp {
+                self.gained_exp += self.current_exp() - self.run_start_exp;
+            }
             self.run_count += 1;
             self.log_statistics();
         }
