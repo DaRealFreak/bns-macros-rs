@@ -24,7 +24,6 @@ pub(crate) trait Lobby {
 }
 
 impl Lobby for Poharan {
-
     unsafe fn has_join_lobby_dialogue_open(&self) -> bool {
         self.pixel_matches("UserInterfaceLobby", "PositionHasJoinLobbyDialogue", "HasJoinLobbyDialogue")
     }
