@@ -9,7 +9,6 @@ use bns_utility::send_keys;
 use crate::Aerodrome;
 
 pub(crate) trait HotKeys {
-    unsafe fn hotkeys_get_into_combat(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self);
@@ -20,12 +19,6 @@ pub(crate) trait HotKeys {
 }
 
 impl HotKeys for Aerodrome {
-    /// Hotkeys to get the player into combat, should not give you movement speed since that would conflict with the walking paths
-    unsafe fn hotkeys_get_into_combat(&self) {
-        for _ in 0..5 {
-            press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "GetIntoCombat");
-        }
-    }
 
     /// Hotkey to toggle auto combat
     unsafe fn hotkeys_auto_combat_toggle(&self) {

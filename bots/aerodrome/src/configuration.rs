@@ -24,7 +24,6 @@ pub(crate) fn create_ini() {
     // all hotkeys, to find the used keys check
     // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
     conf.with_section(Some("Hotkeys"))
-        .set("GetIntoCombat", "0x56")
         .set("ToggleAutoCombat", "0xA0,0x73")
         .set("CheatEngineSpeedHackOn", "0x91")
         .set("CheatEngineSpeedHackOff", "0x63")
