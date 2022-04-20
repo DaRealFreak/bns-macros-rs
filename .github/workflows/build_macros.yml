@@ -2,14 +2,14 @@ name: 'build - macros'
 on:
   push:
     paths:
-      - '/macros/**.rs'
-      - '/macros/**.toml'
-      - '/macros/**.lock'
+      - 'macros/**.rs'
+      - 'macros/**.toml'
+      - 'macros/**.lock'
   pull_request:
     paths:
-      - '/macros/**.rs'
-      - '/macros/**.toml'
-      - '/macros/**.lock'
+      - 'macros/**.rs'
+      - 'macros/**.toml'
+      - 'macros/**.lock'
   workflow_dispatch:
 
 jobs:

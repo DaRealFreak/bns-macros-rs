@@ -13,6 +13,7 @@ pub(crate) trait CrossServerLobby {
 
 impl CrossServerLobby for Aerodrome {
     unsafe fn run_into_dungeon(&self) -> bool {
+        sleep(time::Duration::from_millis(100));
         send_keys(vec![VK_W, VK_SHIFT], true);
         send_keys(vec![VK_SHIFT], false);
 

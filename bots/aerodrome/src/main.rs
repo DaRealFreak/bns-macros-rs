@@ -7,7 +7,7 @@ use std::time;
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_V, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -323,9 +323,18 @@ impl Aerodrome {
                 exit(-1);
             }
 
+            info!("waiting for loading screen");
+            self.wait_loading_screen();
+
             info!("use portal to boss 1");
             let start = time::Instant::now();
             loop {
+                // in case the switch to the HWND failed due to lags while switching to the HWND during loading screens we force a switch again
+                if GetForegroundWindow().0 != hwnd.0 {
+                    warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
+                    switch_to_hwnd(hwnd.to_owned());
+                }
+
                 // earliest break possible is when we can't move anymore since we took the portal
                 if !self.out_of_combat() && hwnd.0 != self.start_hwnd.0 {
                     break;
@@ -350,41 +359,7 @@ impl Aerodrome {
         }
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            info!("switching to window handle {:?}", hwnd);
-            if !switch_to_hwnd(hwnd.to_owned()) {
-                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
-                exit(-1);
-            }
-
-            info!("move client {} into position for boss 1", index + 1);
-            send_key(VK_W, true);
-
-            let mut sprinting = false;
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_combat() && !sprinting {
-                    sleep(time::Duration::from_millis(150));
-                    send_key(VK_SHIFT, true);
-                    sleep(time::Duration::from_millis(2));
-                    send_key(VK_SHIFT, false);
-                    sprinting = true;
-                }
-
-                if self.get_player_pos_x() > 30900f32 {
-                    info!("reached boss 1 position");
-                    break;
-                }
-            }
-            send_key(VK_W, false);
-        }
-
-        self.fight_boss_1()
-    }
-
-    unsafe fn fight_boss_1(&mut self) -> bool {
-        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
+            // skip warlock since he'll most likely be in combat, move him last
             if hwnd.0 == self.start_hwnd.0 {
                 continue;
             }
@@ -395,8 +370,10 @@ impl Aerodrome {
                 exit(-1);
             }
 
-            info!("activating auto combat for client {}", index + 1);
-            self.hotkeys_auto_combat_toggle();
+            info!("move client {} into position for boss 1", index + 1);
+            if !self.move_to_bulmalo() {
+                return false;
+            }
         }
 
         info!("switching to window handle {:?}", self.start_hwnd);
@@ -405,8 +382,15 @@ impl Aerodrome {
             exit(-1);
         }
 
-        info!("activating auto combat for the warlock");
-        self.hotkeys_auto_combat_toggle();
+        if !self.move_to_bulmalo() {
+            return false;
+        }
+
+        self.fight_boss_1()
+    }
+
+    unsafe fn fight_boss_1(&mut self) -> bool {
+        self.activate_auto_combat();
 
         // sleep to get into combat before checking out of combat for fight over
         sleep(time::Duration::from_secs(1));
@@ -453,6 +437,7 @@ impl Aerodrome {
             send_key(VK_W, true);
 
             let mut sprinting = false;
+            let start = time::Instant::now();
             loop {
                 self.activity.check_game_activity();
 
@@ -462,6 +447,11 @@ impl Aerodrome {
                     sleep(time::Duration::from_millis(2));
                     send_key(VK_SHIFT, false);
                     sprinting = true;
+                }
+
+                if start.elapsed().as_secs() > 60 {
+                    warn!("ran into a timeout");
+                    return false;
                 }
 
                 if self.get_player_pos_x() >= 52388f32 {
@@ -488,6 +478,11 @@ impl Aerodrome {
 
     unsafe fn move_to_boss_2(&mut self) -> bool {
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // skip warlock since he'll most likely be in combat, move him last
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
             info!("moving client {} to Maximon", index + 1);
 
             info!("switching to window handle {:?}", hwnd);
@@ -496,56 +491,9 @@ impl Aerodrome {
                 exit(-1);
             }
 
-            // sleep tiny bit so sprinting doesn't bug
-            sleep(time::Duration::from_millis(250));
-
-            send_key(VK_W, true);
-            let mut sprinting = false;
-
-            let start = time::Instant::now();
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_combat() && !sprinting {
-                    sleep(time::Duration::from_millis(150));
-                    send_key(VK_SHIFT, true);
-                    sleep(time::Duration::from_millis(2));
-                    send_key(VK_SHIFT, false);
-                    sprinting = true;
-                }
-
-                if start.elapsed().as_secs() > 40 {
-                    warn!("timeout while running to boss 2");
-                    return false;
-                }
-
-                if self.get_player_pos_x() > 69650f32 {
-                    info!("reached position");
-                    break;
-                }
+            if !self.move_to_maximon() {
+                return false;
             }
-
-            send_key(VK_W, false);
-        }
-
-        self.fight_boss_2()
-    }
-
-    unsafe fn fight_boss_2(&mut self) -> bool {
-        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
-            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
-            if hwnd.0 == self.start_hwnd.0 {
-                continue;
-            }
-
-            info!("switching to window handle {:?}", hwnd);
-            if !switch_to_hwnd(hwnd.to_owned()) {
-                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
-                exit(-1);
-            }
-
-            info!("activating auto combat for client {}", index + 1);
-            self.hotkeys_auto_combat_toggle();
         }
 
         info!("switching to window handle {:?}", self.start_hwnd);
@@ -554,8 +502,15 @@ impl Aerodrome {
             exit(-1);
         }
 
-        info!("activating auto combat for the warlock");
-        self.hotkeys_auto_combat_toggle();
+        if !self.move_to_maximon() {
+            return false;
+        }
+
+        self.fight_boss_2()
+    }
+
+    unsafe fn fight_boss_2(&mut self) -> bool {
+        self.activate_auto_combat();
 
         let start = time::Instant::now();
         info!("wait for dynamic reward");
@@ -686,69 +641,35 @@ impl Aerodrome {
         }
     }
 
-    unsafe fn leave_party(&self) {
-        info!("trying to leave party");
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                break;
-            }
-
-            // disable fly hack if we ran into a timeout while disabling it
-            self.hotkeys_fly_hack_disable();
-
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
-            }
-
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
-
-            // open menu and click on leave party
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_leave_party();
-        }
-
-        if self.in_loading_screen() {
-            info!("in loading screen, wait out loading screen");
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_loading_screen() {
-                    break;
-                }
-            }
-        }
-
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                info!("found f8 lobby, leave party successful");
-                break;
-            }
-
-            send_keys(vec![VK_SHIFT, VK_V], true);
-            send_keys(vec![VK_SHIFT, VK_V], false);
-
-            // open menu and click on leave party
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_exit();
-        }
-    }
-
     unsafe fn get_sleep_time(&self, original_time: u64) -> time::Duration {
         time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
+    }
+
+    unsafe fn activate_auto_combat(&self) {
+        for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // ignore warlock, on whom we activate auto combat as the last client to stay in that hwnd
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
+            info!("switching to window handle {:?}", hwnd);
+            if !switch_to_hwnd(hwnd.to_owned()) {
+                warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
+                exit(-1);
+            }
+
+            info!("activating auto combat for client {}", index + 1);
+            self.hotkeys_auto_combat_toggle();
+        }
+
+        info!("switching to window handle {:?}", self.start_hwnd);
+        if !switch_to_hwnd(self.start_hwnd) {
+            warn!("unable to switch to window handle {:?}, game probably crashed, exiting", self.start_hwnd);
+            exit(-1);
+        }
+
+        info!("activating auto combat for the warlock");
+        self.hotkeys_auto_combat_toggle();
     }
 }
 

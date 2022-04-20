@@ -38,6 +38,7 @@ pub(crate) struct AerodromeExp {
     failed_runs: Vec<u128>,
     run_start_timestamp: std::time::Instant,
     run_start_exp: u64,
+    run_failed: bool,
     settings: Ini,
 }
 
@@ -58,6 +59,7 @@ impl AerodromeExp {
             failed_runs: vec![],
             run_start_timestamp: time::Instant::now(),
             run_start_exp: 0,
+            run_failed: false,
             settings: test,
         }
     }
@@ -84,10 +86,18 @@ impl AerodromeExp {
 
                 self.enter_lobby();
             } else {
-                self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
-                info!("run took {:?} seconds to complete", self.run_start_timestamp.elapsed().as_secs());
+                if self.run_failed {
+                    self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
+                    warn!("run failed after {:?} seconds", self.run_start_timestamp.elapsed().as_secs());
+                } else {
+                    self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
+                    info!("run took {:?} seconds to complete", self.run_start_timestamp.elapsed().as_secs());
+                }
             }
-            self.gained_exp += self.current_exp() - self.run_start_exp;
+
+            if self.current_exp() > self.run_start_exp {
+                self.gained_exp += self.current_exp() - self.run_start_exp;
+            }
             self.run_count += 1;
             self.log_statistics();
         }
@@ -164,6 +174,7 @@ impl AerodromeExp {
 
     unsafe fn move_to_dungeon(&mut self) -> bool {
         self.run_start_timestamp = time::Instant::now();
+        self.run_failed = false;
 
         info!("disable animation speed hack");
         self.animation_speed_hack(1.0f32);
@@ -201,7 +212,7 @@ impl AerodromeExp {
             send_key(VK_W, false);
         }
 
-        if self.run_count > 0 && self.run_count as f32 % 35f32 == 0f32 {
+        if self.run_count == 0 || self.run_count as f32 % 19f32 == 0f32 {
             let start = time::Instant::now();
             loop {
                 if start.elapsed().as_secs() > 6 {
@@ -279,7 +290,7 @@ impl AerodromeExp {
 
         info!("cc'ing the dummies");
         for _ in 0..5 {
-            self.hotkeys_cc_dummies();
+            self.hotkeys_dummy_opener();
             sleep(time::Duration::from_millis(100));
         }
 
@@ -290,12 +301,24 @@ impl AerodromeExp {
         loop {
             self.activity.check_game_activity();
 
-            if start.elapsed().as_secs() > 8 {
+            if start.elapsed().as_millis() > 3000 {
+                self.hotkeys_cc_dummies();
+                sleep(time::Duration::from_millis(100));
+            }
+
+            if start.elapsed().as_millis() > 6000 {
+                self.hotkeys_cc_dummies_2();
+                sleep(time::Duration::from_millis(100));
+            }
+
+            if start.elapsed().as_secs() > self.get_combat_time() {
                 break;
             }
 
             if self.revive_visible() {
-                return false;
+                warn!("died before timeout, counting run as failure");
+                self.hotkeys_auto_combat_toggle();
+                return self.leave_dungeon(false);
             }
         }
 
@@ -330,16 +353,26 @@ impl AerodromeExp {
             }
         }
 
-        self.leave_dungeon()
+        self.leave_dungeon(true)
     }
 
-    unsafe fn leave_dungeon(&mut self) -> bool {
+    unsafe fn leave_dungeon(&mut self, success: bool) -> bool {
+        if !success {
+            self.run_failed = true;
+        }
+
         loop {
             self.activity.check_game_activity();
 
             if self.in_loading_screen() {
                 self.hotkeys_cheat_engine_speed_hack_disable();
                 break;
+            }
+
+            if self.revive_visible() {
+                send_key(VK_4, true);
+                send_key(VK_4, false);
+                sleep(time::Duration::from_millis(50));
             }
 
             self.hotkeys_cheat_engine_speed_hack_disable();
@@ -366,12 +399,12 @@ impl AerodromeExp {
         let average_exp_per_hour = expected_successful_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
         let next_level = (self.next_level_exp() as f64 - self.current_exp() as f64) / (if average_exp_per_hour > 0f64 { average_exp_per_hour } else { 1f64 });
 
-        info!("runs done: {} (died in {} out of {} runs ({:.2}%), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
+        info!("runs done: {} (died in {} out of {} runs ({:.2}%)), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
         info!("gained exp: {}, total gained exp: {}, expected exp per hour: {:.2}, expected level up in {:.2} hours", (self.current_exp() - self.run_start_exp), self.gained_exp, average_exp_per_hour, next_level);
         info!("expected runs per hour: {:.2}", expected_successful_runs_per_hour);
     }
 
-    unsafe fn fail_safe(&self) {
+    unsafe fn fail_safe(&mut self) {
         if self.in_loading_screen() {
             info!("wait out loading screen");
         }
@@ -387,7 +420,8 @@ impl AerodromeExp {
         loop {
             self.activity.check_game_activity();
 
-            if self.in_f8_lobby() || self.in_loading_screen() {
+            if self.get_player_pos_x() == 10624f32 {
+                info!("escape successful");
                 break;
             }
 
@@ -409,10 +443,19 @@ impl AerodromeExp {
             sleep(time::Duration::from_millis(500));
             self.menu_escape();
         }
+
+        self.leave_dungeon(false);
     }
 
     unsafe fn get_sleep_time(&self, original_time: u64) -> time::Duration {
         time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
+    }
+
+    unsafe fn get_combat_time(&self) -> u64 {
+        let section_settings = self.settings.section(Some("Configuration")).unwrap();
+        let position_settings = section_settings.get("CombatTime").unwrap();
+
+        position_settings.parse::<u64>().unwrap()
     }
 }
 
