@@ -595,14 +595,13 @@ impl Aerodrome {
     unsafe fn fail_safe(&self, hwnd: HWND) {
         if self.in_loading_screen() {
             info!("wait out loading screen");
-        }
+            loop {
+                if self.out_of_loading_screen() {
+                    break;
+                }
 
-        loop {
-            if self.out_of_loading_screen() {
-                break;
+                sleep(time::Duration::from_millis(100));
             }
-
-            sleep(time::Duration::from_millis(100));
         }
 
         loop {
