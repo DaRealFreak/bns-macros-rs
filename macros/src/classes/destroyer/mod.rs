@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
+use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState, VIRTUAL_KEY};
 use bns_utility::send_key;
 
 use crate::classes::{BnsMacro, BnsMacroCreation};
@@ -36,6 +36,9 @@ impl BnsMacro for Destroyer {
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
         // c iframe
         if GetAsyncKeyState(0x43) < 0 {
+            send_key(VIRTUAL_KEY(0x43), false);
+            sleep(time::Duration::from_millis(10));
+            BlockInput(true);
             loop {
                 send_key(Destroyer::skill_searing_strike(), true);
                 send_key(Destroyer::skill_searing_strike(), false);
@@ -43,10 +46,14 @@ impl BnsMacro for Destroyer {
                     break;
                 }
             }
+            BlockInput(false);
         }
 
         // q iframe
         if GetAsyncKeyState(0x51) < 0 {
+            send_key(VIRTUAL_KEY(0x51), false);
+            sleep(time::Duration::from_millis(10));
+            BlockInput(true);
             loop {
                 send_key(Destroyer::skill_typhoon(), true);
                 send_key(Destroyer::skill_typhoon(), false);
@@ -54,6 +61,7 @@ impl BnsMacro for Destroyer {
                     break;
                 }
             }
+            BlockInput(false);
         }
 
         let fury_available = Destroyer::skill_fury_available(hdc);

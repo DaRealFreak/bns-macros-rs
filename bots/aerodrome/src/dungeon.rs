@@ -269,8 +269,14 @@ impl Dungeon for Aerodrome {
         }
 
         info!("progress dynamic reward until bonus reward selection screen");
+        let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 10 {
+                warn!("unable to find bonus reward selection screen, maybe skipped, continuing run");
+                break;
+            }
 
             if self.bonus_reward_selection_visible() {
                 break;
