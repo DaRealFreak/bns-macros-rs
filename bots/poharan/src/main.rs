@@ -186,6 +186,7 @@ impl Poharan {
                 if GetForegroundWindow().0 != hwnd.0 {
                     warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
                     switch_to_hwnd(hwnd);
+                    continue;
                 }
 
                 if self.get_player_lobby_number(hwnd) == lobby_number {
@@ -742,7 +743,20 @@ impl Poharan {
             info!("wait out loading screen");
         }
 
+        let start = time::Instant::now();
         loop {
+            // in case the switch to the HWND failed due to lags while switching to the HWND during loading screens we force a switch again
+            if GetForegroundWindow().0 != hwnd.0 {
+                warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
+                switch_to_hwnd(hwnd);
+                continue;
+            }
+
+            if start.elapsed().as_secs() > 60 {
+                warn!("unable to find loading screen after 1 minute, retrying fail safe");
+                return self.fail_safe(hwnd);
+            }
+
             if self.out_of_loading_screen() {
                 break;
             }
@@ -757,6 +771,7 @@ impl Poharan {
             if GetForegroundWindow().0 != hwnd.0 {
                 warn!("unexpected foreground window {:?}, expected hwnd: {:?}, switching window handle", GetForegroundWindow(), hwnd);
                 switch_to_hwnd(hwnd);
+                continue;
             }
 
             if self.in_f8_lobby() || self.in_loading_screen() {
