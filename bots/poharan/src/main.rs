@@ -757,7 +757,9 @@ impl Poharan {
                 return self.fail_safe(hwnd);
             }
 
-            if self.out_of_loading_screen() {
+            // wait until loading screen is over or we revive is visible
+            // (grey screen changes pixels which may affect out of loading screen functionality)
+            if self.out_of_loading_screen() || self.revive_visible() {
                 break;
             }
 
