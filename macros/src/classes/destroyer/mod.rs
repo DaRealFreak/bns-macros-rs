@@ -97,7 +97,7 @@ impl BnsMacro for Destroyer {
                 sleep(time::Duration::from_millis(135));
                 self.use_fury_after_next_mc = false
             } else {
-                if Destroyer::skill_smash_available(hdc) {
+                if dps && Destroyer::skill_smash_available(hdc) {
                     loop {
                         send_key(Destroyer::skill_smash(), true);
                         send_key(Destroyer::skill_smash(), false);

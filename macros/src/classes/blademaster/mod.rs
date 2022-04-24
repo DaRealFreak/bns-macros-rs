@@ -1,6 +1,13 @@
-use windows::Win32::Graphics::Gdi::HDC;
+use std::thread::sleep;
+use std::time;
+
+use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_T;
+
+use bns_utility::send_key;
 
 use crate::{BnsMacro, BnsMacroCreation};
+use crate::general::{general_is_soul_triggered, general_talisman};
 
 #[derive(Copy, Clone)]
 pub(crate) struct BladeMaster {}
@@ -16,12 +23,20 @@ impl BnsMacro for BladeMaster {
         "Fire Blade Master".parse().unwrap()
     }
 
-    unsafe fn class_active(&self, _hdc: HDC) -> bool {
-        false
+    unsafe fn class_active(&self, hdc: HDC) -> bool {
+        GetPixel(hdc, 891, 888) == 14591851
     }
 
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
-        println!("hdc: {}, dps: {}", hdc.0, dps)
+        // talisman sync with soul
+        if dps && general_is_soul_triggered(hdc) {
+            send_key(general_talisman(), true);
+            send_key(general_talisman(), false);
+        }
+
+        send_key(VK_T, true);
+        send_key(VK_T, false);
+        sleep(time::Duration::from_millis(2));
     }
 
     fn box_clone(&self) -> Box<dyn BnsMacro> {
