@@ -84,6 +84,8 @@ impl Dungeon for Aerodrome {
     }
 
     unsafe fn move_to_maximon(&mut self) -> bool {
+        self.animation_speed_hack(self.animation_speed());
+
         // sleep tiny bit so sprinting doesn't bug
         sleep(time::Duration::from_millis(250));
 

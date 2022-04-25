@@ -219,6 +219,9 @@ impl Aerodrome {
         info!("selecting stage {}", self.farm_stage());
         self.select_stage();
 
+        // small sleep in remote environment first try on enter button didn't work
+        sleep(time::Duration::from_millis(250));
+
         info!("moving to dungeon");
         self.enter_dungeon();
 
@@ -451,9 +454,14 @@ impl Aerodrome {
                     sprinting = true;
                 }
 
-                if start.elapsed().as_secs() > 60 {
+                if start.elapsed().as_secs() > 40 {
                     warn!("ran into a timeout");
                     return false;
+                }
+
+                // deactivate animation speed hack to prevent speeding right through the portal lol
+                if self.get_player_pos_x() >= 38000f32 && self.get_animation_speed() != 1.0f32 {
+                    self.animation_speed_hack(1.0f32);
                 }
 
                 if self.get_player_pos_x() >= 52388f32 {

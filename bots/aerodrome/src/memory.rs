@@ -30,6 +30,7 @@ pub(crate) trait Memory {
     unsafe fn offsets_dungeon_stage(&self) -> Vec<u64>;
     unsafe fn offsets_lobby_number(&self) -> Vec<u64>;
     unsafe fn animation_speed_hack(&mut self, speed: f32);
+    unsafe fn get_animation_speed(&mut self) -> f32;
     unsafe fn change_camera_to_degrees(&mut self, degree: f32);
     unsafe fn get_player_pos_x(&mut self) -> f32;
     unsafe fn get_player_pos_y(&mut self) -> f32;
@@ -114,6 +115,10 @@ impl Memory for Aerodrome {
 
     unsafe fn animation_speed_hack(&mut self, speed: f32) {
         self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_animation_speed(), speed);
+    }
+
+    unsafe fn get_animation_speed(&mut self) -> f32 {
+        self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_animation_speed(), 0f32)
     }
 
     unsafe fn change_camera_to_degrees(&mut self, degree: f32) {
