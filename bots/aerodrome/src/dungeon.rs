@@ -176,8 +176,14 @@ impl Dungeon for Aerodrome {
         // spawn thrall
         let start = time::Instant::now();
         loop {
-            if start.elapsed().as_millis() > 2500 {
-                break;
+            if boss == 1 {
+                if start.elapsed().as_millis() > 2500 {
+                    break;
+                }
+            } else {
+                if start.elapsed().as_millis() > 5000 {
+                    break;
+                }
             }
 
             send_key(VK_TAB, true);
@@ -211,8 +217,11 @@ impl Dungeon for Aerodrome {
             sleep(time::Duration::from_millis(100));
         }
 
-        send_key(VK_V, true);
-        send_key(VK_V, false);
+        for _ in 1..5 {
+            send_key(VK_V, true);
+            send_key(VK_V, false);
+            sleep(time::Duration::from_millis(50));
+        }
 
         info!("opening the portal took {}ms", portal_start.elapsed().as_millis());
         true
