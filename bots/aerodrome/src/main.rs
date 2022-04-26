@@ -460,8 +460,8 @@ impl Aerodrome {
                 }
 
                 // deactivate animation speed hack to prevent speeding right through the portal lol
-                if self.get_player_pos_x() >= 38000f32 && self.get_animation_speed() != 1.0f32 {
-                    self.animation_speed_hack(1.0f32);
+                if self.get_player_pos_x() >= 38000f32 && self.get_animation_speed() != 3.0f32 {
+                    self.animation_speed_hack(3.0f32);
                 }
 
                 if self.get_player_pos_x() >= 52388f32 {
