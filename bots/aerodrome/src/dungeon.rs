@@ -78,12 +78,15 @@ impl Dungeon for Aerodrome {
                 return false;
             }
 
-            if self.get_player_pos_x() > 30900f32 {
+            if self.get_player_pos_x() > 30805f32 {
                 info!("reached boss 1 position");
                 break;
             }
         }
-        send_key(VK_W, false);
+
+        for _ in 1..3 {
+            send_key(VK_W, false);
+        }
 
         true
     }
