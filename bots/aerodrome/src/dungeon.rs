@@ -68,7 +68,12 @@ impl Dungeon for Aerodrome {
                 sprinting = true;
             }
 
-            if start.elapsed().as_secs() > 60 {
+            if self.revive_visible() {
+                warn!("revive is visible, assume lag while walking to the boss");
+                return false;
+            }
+
+            if start.elapsed().as_secs() > 30 {
                 warn!("ran into a timeout");
                 return false;
             }
