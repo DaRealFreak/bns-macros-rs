@@ -242,6 +242,9 @@ impl Dungeon for Aerodrome {
         info!("turning camera to 0 degrees");
         self.change_camera_to_degrees(0f32);
 
+        info!("changing animation speed to 6.5 to prevent lag spikes");
+        self.animation_speed_hack(6.5f32);
+
         send_keys(vec![VK_A, VK_W], true);
         let start = time::Instant::now();
         loop {
@@ -260,12 +263,12 @@ impl Dungeon for Aerodrome {
             }
 
             // timeout
-            if start.elapsed().as_millis() > 4500 {
-                warn!("unable to get player into position, abandoning run");
+            if start.elapsed().as_secs() > 10 {
+                warn!("unable to get player into position within 10 seconds, abandoning run");
                 return false;
             }
 
-            sleep(time::Duration::from_millis(25));
+            sleep(time::Duration::from_millis(5));
         }
 
         if !self.exit_portal_icon_visible() {
