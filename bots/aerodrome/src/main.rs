@@ -433,11 +433,55 @@ impl Aerodrome {
                 exit(-1);
             }
 
-            info!("deactivating auto combat on the warlock");
-            self.hotkeys_auto_combat_toggle();
-
             info!("set camera to 0 degrees");
             self.change_camera_to_degrees(0f32);
+
+            if self.get_player_pos_x() == 10628f32 {
+                warn!("player died during Bulmalo, using portal to get back to boss 1");
+                send_key(VK_W, true);
+
+                let start = time::Instant::now();
+                loop {
+                    if self.get_player_pos_x() >= 10900f32 {
+                        break;
+                    }
+
+                    if start.elapsed().as_secs() > 2 {
+                        warn!("unable to find portal, assume run failed");
+                        send_key(VK_W, false);
+                        return false;
+                    }
+                }
+
+                send_key(VK_W, false);
+
+                // sleep tiny bit for exit portal to pop up
+                sleep(time::Duration::from_millis(150));
+
+                let start = time::Instant::now();
+                loop {
+                    // earliest break possible is when we can't move anymore since we took the portal
+                    if !self.out_of_combat() {
+                        break;
+                    }
+
+                    // timeout for safety
+                    if start.elapsed().as_secs() > 5 {
+                        break;
+                    }
+
+                    // continue spamming f to take the portal if the previous f was ignored
+                    if self.portal_icon_visible() {
+                        send_key(VK_F, true);
+                        send_key(VK_F, false);
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                info!("deactivating auto combat");
+                self.hotkeys_auto_combat_toggle();
+            }
 
             send_key(VK_W, true);
 
@@ -543,7 +587,7 @@ impl Aerodrome {
                 return false;
             }
 
-            sleep(time::Duration::from_millis(500));
+            sleep(time::Duration::from_millis(20));
         }
 
         info!("sleep to let clients pick up possible loot");

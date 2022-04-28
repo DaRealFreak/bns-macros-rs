@@ -168,7 +168,7 @@ impl BnsMacro for Destroyer {
         }
 
         // enter fury stance
-        if dps && fury_available && judgment_available {
+        if fury_available && judgment_available {
             if Destroyer::skill_emberstomp_available(hdc) {
                 loop {
                     send_key(Destroyer::skill_emberstomp(), true);
