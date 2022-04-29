@@ -351,7 +351,7 @@ impl Aerodrome {
                 }
 
                 // continue spamming f to take the portal while we didn't get teleported yet
-                if self.get_player_pos_x() < 20000f32 {
+                if self.get_player_pos_x_by_hwnd(hwnd.to_owned()) < 20000f32 {
                     send_key(VK_F, true);
                     send_key(VK_F, false);
                 } else {
