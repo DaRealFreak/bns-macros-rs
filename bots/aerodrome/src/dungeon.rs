@@ -259,6 +259,7 @@ impl Dungeon for Aerodrome {
             }
 
             if self.exit_portal_icon_visible() {
+                send_keys(vec![VK_A, VK_W], false);
                 break;
             }
 
