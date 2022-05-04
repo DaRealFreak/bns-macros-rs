@@ -258,11 +258,6 @@ impl Dungeon for Aerodrome {
                 send_key(VK_W, false);
             }
 
-            if self.exit_portal_icon_visible() {
-                send_keys(vec![VK_A, VK_W], false);
-                break;
-            }
-
             // timeout
             if start.elapsed().as_secs() > 10 {
                 warn!("unable to get player into position within 10 seconds, abandoning run");
