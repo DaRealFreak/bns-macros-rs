@@ -7,7 +7,7 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "41")
         .set("AnimationSpeedHackValue", "8")
-        .set("SlowAnimationSpeedHackValue", "5.5")
+        .set("ActivateGate", "true")
         .set("LogFile", "aerodrome_multibox.log");
 
     conf.with_section(Some("Pointers"))

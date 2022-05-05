@@ -11,6 +11,7 @@ use crate::memory::Memory;
 
 pub(crate) trait Dungeon {
     unsafe fn animation_speed(&self) -> f32;
+    unsafe fn activate_gate(&self) -> bool;
     unsafe fn thrall_available(&self) -> bool;
     unsafe fn portal_icon_visible(&self) -> bool;
     unsafe fn exit_portal_icon_visible(&self) -> bool;
@@ -30,6 +31,12 @@ impl Dungeon for Aerodrome {
         let position_settings = section_settings.get("AnimationSpeedHackValue").unwrap();
 
         position_settings.parse::<f32>().unwrap()
+    }
+
+    unsafe fn activate_gate(&self) -> bool {
+        let section_settings = self.settings.section(Some("Configuration")).unwrap();
+        let gate_settings = section_settings.get("ActivateGate").unwrap();
+        gate_settings == "true"
     }
 
     unsafe fn thrall_available(&self) -> bool {
@@ -236,6 +243,27 @@ impl Dungeon for Aerodrome {
     }
 
     unsafe fn leave_dungeon_client(&mut self) -> bool {
+        if self.get_player_pos_x() == 52396f32 {
+            info!("player died during fight against maximon, returning to pick up loot");
+
+            info!("turning camera to 0 degrees");
+            self.change_camera_to_degrees(0f32);
+
+            if !self.move_to_maximon() {
+                warn!("unable to move back to maximon, leaving dungeon");
+                return false;
+            }
+
+            info!("activating auto combat to pick up possible loot");
+            self.hotkeys_auto_combat_toggle();
+
+            info!("sleep to let clients pick up possible loot");
+            sleep(time::Duration::from_secs(4));
+
+            info!("sleep to let clients run into the return position");
+            sleep(self.get_sleep_time(6000));
+        }
+
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 
@@ -247,15 +275,23 @@ impl Dungeon for Aerodrome {
 
         send_keys(vec![VK_A, VK_W], true);
         let start = time::Instant::now();
+        let mut reached_left = false;
+        let mut reached_front = false;
         loop {
             self.activity.check_game_activity();
 
+            if reached_left && reached_front {
+                break;
+            }
+
             if self.get_player_pos_y() < -12850f32 {
                 send_key(VK_A, false);
+                reached_left = true;
             }
 
             if self.get_player_pos_x() > 71000f32 {
                 send_key(VK_W, false);
+                reached_front = true;
             }
 
             // timeout
@@ -266,6 +302,9 @@ impl Dungeon for Aerodrome {
 
             sleep(time::Duration::from_millis(5));
         }
+
+        // safety sleep for 300 ms for the UI to refresh
+        sleep(time::Duration::from_millis(300));
 
         if !self.exit_portal_icon_visible() {
             warn!("exit portal icon not visible, abandoning run");

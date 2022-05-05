@@ -7,7 +7,7 @@ use std::time;
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -318,6 +318,46 @@ impl Aerodrome {
                 warn!("unable to find portal to Bulmalo, abandoning run");
                 return false;
             }
+        }
+
+        if self.activate_gate() {
+            info!("activating gate for ranking");
+
+            self.animation_speed_hack(self.animation_speed());
+
+            send_key(VK_W, true);
+
+            let start = time::Instant::now();
+            loop {
+                if self.get_player_pos_x() >= 11750f32 {
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 5 {
+                    warn!("unable to activate gate");
+                    send_key(VK_W, false);
+                    return false;
+                }
+            }
+
+            send_key(VK_W, false);
+            sleep(time::Duration::from_millis(50));
+
+            send_key(VK_S, true);
+
+            let start = time::Instant::now();
+            loop {
+                if self.get_player_pos_x() <= 10924f32 {
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 5 {
+                    warn!("unable to walk back to portal position");
+                    send_key(VK_S, false);
+                    return false;
+                }
+            }
+            send_key(VK_S, false);
         }
 
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
