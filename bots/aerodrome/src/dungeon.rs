@@ -18,6 +18,7 @@ pub(crate) trait Dungeon {
     unsafe fn bonus_reward_selection_visible(&self) -> bool;
     unsafe fn revive_visible(&self) -> bool;
     unsafe fn move_to_bulmalo(&mut self) -> bool;
+    unsafe fn move_to_area_2(&mut self) -> bool;
     unsafe fn move_to_maximon(&mut self) -> bool;
     unsafe fn dynamic_reward_visible(&self) -> bool;
     unsafe fn out_of_combat(&self) -> bool;
@@ -94,6 +95,91 @@ impl Dungeon for Aerodrome {
         for _ in 1..3 {
             send_key(VK_W, false);
         }
+
+        true
+    }
+
+    unsafe fn move_to_area_2(&mut self) -> bool {
+        info!("set camera to 0 degrees");
+        self.change_camera_to_degrees(0f32);
+
+        if self.get_player_pos_x() == 10628f32 {
+            warn!("player died during Bulmalo, using portal to get back to boss 1");
+            send_key(VK_W, true);
+
+            let start = time::Instant::now();
+            loop {
+                if self.get_player_pos_x() >= 10900f32 {
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 2 {
+                    warn!("unable to find portal, assume run failed");
+                    send_key(VK_W, false);
+                    return false;
+                }
+            }
+
+            send_key(VK_W, false);
+
+            // sleep tiny bit for exit portal to pop up
+            sleep(time::Duration::from_millis(150));
+
+            let start = time::Instant::now();
+            loop {
+                // earliest break possible is when we can't move anymore since we took the portal
+                if !self.out_of_combat() {
+                    break;
+                }
+
+                // timeout for safety
+                if start.elapsed().as_secs() > 5 {
+                    break;
+                }
+
+                // continue spamming f to take the portal if the previous f was ignored
+                if self.get_player_pos_x() < 20000f32 {
+                    send_key(VK_F, true);
+                    send_key(VK_F, false);
+                } else {
+                    break;
+                }
+            }
+        } else {
+            info!("deactivating auto combat");
+            self.hotkeys_auto_combat_toggle();
+        }
+
+        send_key(VK_W, true);
+
+        let mut sprinting = false;
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.out_of_combat() && !sprinting {
+                sleep(time::Duration::from_millis(150));
+                send_key(VK_SHIFT, true);
+                sleep(time::Duration::from_millis(2));
+                send_key(VK_SHIFT, false);
+                sprinting = true;
+            }
+
+            if start.elapsed().as_secs() > 40 {
+                warn!("ran into a timeout");
+                return false;
+            }
+
+            // deactivate animation speed hack to prevent speeding right through the portal lol
+            if self.get_player_pos_x() >= 38000f32 && self.get_animation_speed() != 3.0f32 {
+                self.animation_speed_hack(3.0f32);
+            }
+
+            if self.get_player_pos_x() >= 52388f32 {
+                break;
+            }
+        }
+        send_key(VK_W, false);
 
         true
     }
@@ -196,7 +282,7 @@ impl Dungeon for Aerodrome {
                     break;
                 }
             } else {
-                if start.elapsed().as_millis() > 5000 {
+                if start.elapsed().as_millis() > 3500 {
                     break;
                 }
             }
@@ -243,7 +329,7 @@ impl Dungeon for Aerodrome {
     }
 
     unsafe fn leave_dungeon_client(&mut self) -> bool {
-        if self.get_player_pos_x() == 52396f32 {
+        if self.get_player_pos_x() <= 53250f32 {
             info!("player died during fight against maximon, returning to pick up loot");
 
             info!("turning camera to 0 degrees");
