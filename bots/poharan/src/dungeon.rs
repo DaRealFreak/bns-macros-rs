@@ -192,12 +192,6 @@ impl Dungeon for Poharan {
             }
         }
 
-        sleep(time::Duration::from_millis(150));
-        if self.portal_icon_visible() {
-            warn!("unable to find portal to Poharan, abandoning run");
-            return false;
-        }
-
         info!("use portal to Poharan");
         let start = time::Instant::now();
         loop {
@@ -221,19 +215,6 @@ impl Dungeon for Poharan {
             }
         }
 
-        info!("use portal to Poharan");
-        loop {
-            self.activity.check_game_activity();
-
-            if !self.portal_icon_visible() {
-                break;
-            }
-
-            send_key(VK_F, true);
-            sleep(time::Duration::from_millis(2));
-            send_key(VK_F, false);
-        }
-
         true
     }
 
@@ -241,20 +222,16 @@ impl Dungeon for Poharan {
         loop {
             self.activity.check_game_activity();
 
-            if self.out_of_combat() {
+            if self.out_of_combat() || self.revive_visible() {
                 break;
             }
 
             sleep(time::Duration::from_millis(100));
         }
 
-        self.animation_speed_hack(self.animation_speed_slow());
+        self.animation_speed_hack(self.animation_speed());
 
-        // sleep tiny bit so sprinting doesn't bug
-        sleep(time::Duration::from_millis(250));
-
-        send_keys(vec![VK_W, VK_SHIFT], true);
-        send_key(VK_SHIFT, false);
+        send_key(VK_W, true);
 
         let start = time::Instant::now();
         let mut reached_x = false;
@@ -282,7 +259,12 @@ impl Dungeon for Poharan {
                 reached_x = true;
             }
 
-            if self.get_player_pos_y() > -27225f32 && self.get_player_pos_z() < -339f32 {
+            if self.get_animation_speed() > 4.0f32 && self.get_player_pos_y() > -28100f32 {
+                info!("changing animation speed to 4.0 to prevent porting back on the bridge");
+                self.animation_speed_hack(4.0f32);
+            }
+
+            if self.get_player_pos_z() < -339f32 {
                 // we dropped in the pit with poharan
                 info!("position reached");
                 break;
@@ -290,6 +272,8 @@ impl Dungeon for Poharan {
         }
 
         send_keys(vec![VK_W, VK_D], false);
+
+        self.animation_speed_hack(self.animation_speed());
     }
 
     unsafe fn leave_dungeon_client(&mut self) -> bool {
