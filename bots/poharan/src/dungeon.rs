@@ -161,25 +161,64 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn use_poharan_portal(&mut self) -> bool {
+        self.change_camera_to_degrees(0f32);
+
         send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
-        sleep(time::Duration::from_millis(350));
-        send_key(VK_A, false);
-        sleep(time::Duration::from_millis(2850));
-        send_key(VK_W, false);
 
         let start = time::Instant::now();
+        let mut reached_x = false;
+        let mut reached_y = false;
         loop {
-            if self.portal_icon_visible() {
+            self.activity.check_game_activity();
+
+            if !reached_y && self.get_player_pos_y() <= -35750f32 {
+                send_key(VK_A, false);
+                reached_y = true;
+            }
+
+            if !reached_x && self.get_player_pos_x() > 3000f32 {
+                send_key(VK_W, false);
+                reached_x = true;
+            }
+
+            if reached_x && reached_y {
                 break;
             }
 
-            if start.elapsed().as_secs() > 2 {
-                warn!("unable to find portal to Poharan, abandoning run");
+            if start.elapsed().as_secs() > 10 {
+                warn!("unable to move to portal for poharan, abandoning run");
+                return false;
+            }
+        }
+
+        sleep(time::Duration::from_millis(150));
+        if self.portal_icon_visible() {
+            warn!("unable to find portal to Poharan, abandoning run");
+            return false;
+        }
+
+        info!("use portal to Poharan");
+        let start = time::Instant::now();
+        loop {
+            // earliest break possible is when we can't move anymore since we took the portal
+            if !self.out_of_combat() {
+                break;
+            }
+
+            // timeout for safety
+            if start.elapsed().as_secs() > 5 {
+                warn!("unable to take portal to Poharan, abandoning run");
                 return false;
             }
 
-            sleep(time::Duration::from_millis(100));
+            // continue spamming f to take the portal while we didn't get teleported yet
+            if self.get_player_pos_y() < -34900f32 {
+                send_key(VK_F, true);
+                send_key(VK_F, false);
+            } else {
+                break;
+            }
         }
 
         info!("use portal to Poharan");
@@ -198,7 +237,7 @@ impl Dungeon for Poharan {
         true
     }
 
-    unsafe fn move_to_poharan(&mut self, warlock: bool) {
+    unsafe fn move_to_poharan(&mut self, mut warlock: bool) {
         loop {
             self.activity.check_game_activity();
 
@@ -208,20 +247,18 @@ impl Dungeon for Poharan {
 
             sleep(time::Duration::from_millis(100));
         }
-        self.animation_speed_hack(self.animation_speed());
+
+        self.animation_speed_hack(self.animation_speed_slow());
 
         // sleep tiny bit so sprinting doesn't bug
         sleep(time::Duration::from_millis(250));
 
-        if warlock {
-            send_key(VK_D, true);
-        }
         send_keys(vec![VK_W, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
 
         let start = time::Instant::now();
         let mut reached_x = false;
-        let timeout = self.get_sleep_time(25000);
+        let timeout = self.get_sleep_time(35000);
 
         loop {
             self.activity.check_game_activity();
@@ -230,6 +267,13 @@ impl Dungeon for Poharan {
             if start.elapsed().as_millis() > timeout.as_millis() {
                 info!("timeout reached");
                 break;
+            }
+
+            if warlock && self.get_player_pos_y() > -29134f32 {
+                send_key(VK_D, true);
+                // the only difference of warlocks is having to move to the right
+                // so handle the client the same as other clients afterwards
+                warlock = false;
             }
 
             if !reached_x && self.get_player_pos_x() < 8039f32 {
@@ -249,6 +293,32 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn leave_dungeon_client(&mut self) -> bool {
+        if self.get_player_pos_y() < -34900f32 {
+            warn!("client died during combat, returning to pick up loot");
+            if !self.use_poharan_portal() {
+                warn!("unable to return to poharan, abandoning run");
+                return false;
+            }
+
+            loop {
+                self.activity.check_game_activity();
+
+                // wait until we finished teleporting
+                if self.out_of_combat() {
+                    break;
+                }
+            }
+
+            info!("activating auto combat to pick up possible loot");
+            self.hotkeys_auto_combat_toggle();
+
+            info!("sleep to let clients pick up possible loot");
+            sleep(time::Duration::from_secs(4));
+
+            info!("sleep to let clients run into the return position");
+            sleep(self.get_sleep_time(6000));
+        }
+
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 

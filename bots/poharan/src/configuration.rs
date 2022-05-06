@@ -7,7 +7,7 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
         .set("AnimationSpeedHackValue", "10")
-        .set("SlowAnimationSpeedHackValue", "6.5")
+        .set("SlowAnimationSpeedHackValue", "6")
         .set("LogFile", "poharan_multibox.log");
 
     conf.with_section(Some("Pointers"))
