@@ -684,6 +684,13 @@ impl Aerodrome {
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
+
+            if self.resurrect_visible() {
+                // repeat escape one more time in case we cancelled resurrect with the previous escape
+                send_key(VK_ESCAPE, true);
+                send_key(VK_ESCAPE, false);
+                sleep(time::Duration::from_millis(500));
+            }
             self.menu_exit();
         }
     }

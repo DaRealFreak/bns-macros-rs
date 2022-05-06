@@ -60,6 +60,10 @@ impl Dungeon for Aerodrome {
         self.pixel_matches("UserInterfacePlayer", "PositionReviveVisible", "ReviveVisible")
     }
 
+    unsafe fn resurrect_visible(&self) -> bool {
+        self.pixel_matches("UserInterfacePlayer", "PositionResurrectVisible", "ResurrectVisible")
+    }
+
     unsafe fn move_to_bulmalo(&mut self) -> bool {
         send_key(VK_W, true);
 

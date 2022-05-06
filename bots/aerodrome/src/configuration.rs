@@ -76,6 +76,8 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("UserInterfacePlayer"))
         .set("PositionReviveVisible", "1042,900")
         .set("ReviveVisible", "0x9B8D71")
+        .set("PositionResurrectVisible", "1133,708")
+        .set("ResurrectVisible", "0xCAB94E")
         .set("PositionThrallReady", "825,900")
         .set("ThrallReady", "0x01040E")
         .set("PositionOutOfCombat", "841,837")
