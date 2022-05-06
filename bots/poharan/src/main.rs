@@ -38,6 +38,8 @@ pub(crate) struct Poharan {
     run_count: u128,
     successful_runs: Vec<u128>,
     failed_runs: Vec<u128>,
+    b1_fights: Vec<u128>,
+    b2_fights: Vec<u128>,
     run_start_timestamp: time::Instant,
     settings: Ini,
 }
@@ -62,6 +64,8 @@ impl Poharan {
             run_count: 0,
             successful_runs: vec![],
             failed_runs: vec![],
+            b1_fights: vec![],
+            b2_fights: vec![],
             run_start_timestamp: time::Instant::now(),
             settings: test,
         }
@@ -405,6 +409,7 @@ impl Poharan {
             // Tae Jangum dead and dynamic quest started
             if self.dynamic_visible() {
                 info!("found dynamic quest, fighting Tae Jangum took {} seconds", start.elapsed().as_secs());
+                self.b1_fights.push(start.elapsed().as_millis());
                 break;
             }
 
@@ -734,6 +739,7 @@ impl Poharan {
             // Poharan is dead and dynamic reward is visible
             if self.dynamic_reward_visible() {
                 info!("found dynamic reward, fighting Poharan took {} seconds", start.elapsed().as_secs());
+                self.b2_fights.push(start.elapsed().as_millis());
                 break;
             }
 
@@ -805,7 +811,14 @@ impl Poharan {
         let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
         let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
 
+        sum = self.b1_fights.iter().sum();
+        let average_b1_time: u128 = sum / (if self.b1_fights.len() > 0 { self.b1_fights.len() } else { 1 }) as u128;
+        sum = self.b2_fights.iter().sum();
+        let average_b2_time: u128 = sum / (if self.b2_fights.len() > 0 { self.b2_fights.len() } else { 1 }) as u128;
+
         info!("runs done: {} (died in {} out of {} runs ({:.2}%), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
+        info!("average time for Tae Jangum: {:.2} seconds", average_b1_time as f64 / 1000.0);
+        info!("average time for Poharan: {:.2} seconds", average_b2_time as f64 / 1000.0);
         info!("expected runs per hour: {}", expected_successful_runs_per_hour);
     }
 

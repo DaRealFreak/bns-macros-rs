@@ -163,7 +163,7 @@ impl Dungeon for Poharan {
     unsafe fn use_poharan_portal(&mut self) -> bool {
         self.change_camera_to_degrees(0f32);
 
-        if self.get_player_pos_y() <= -35550f32 {
+        if self.get_player_pos_y() < -35850f32 {
             send_key(VK_D, true);
         } else {
             send_key(VK_A, true);
@@ -260,7 +260,7 @@ impl Dungeon for Poharan {
                 warlock = false;
             }
 
-            if !reached_x && self.get_player_pos_x() < 8039f32 {
+            if !reached_x && self.get_player_pos_x() < 7900f32 {
                 // we reached the last part of the bridge
                 send_key(VK_D, false);
                 reached_x = true;
