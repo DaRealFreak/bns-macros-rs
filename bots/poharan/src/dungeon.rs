@@ -22,7 +22,7 @@ pub(crate) trait Dungeon {
     unsafe fn out_of_combat(&self) -> bool;
     unsafe fn open_portal(&mut self, boss: u8) -> bool;
     unsafe fn use_poharan_portal(&mut self) -> bool;
-    unsafe fn move_to_poharan(&mut self, warlock: bool);
+    unsafe fn move_to_poharan(&mut self, bridge_client: bool);
     unsafe fn leave_dungeon_client(&mut self) -> bool;
 }
 
@@ -183,7 +183,7 @@ impl Dungeon for Poharan {
                 reached_y = true;
             }
 
-            if !reached_x && self.get_player_pos_x() > 3000f32 {
+            if !reached_x && self.get_player_pos_x() > 3080f32 {
                 send_key(VK_W, false);
                 reached_x = true;
             }
@@ -225,7 +225,7 @@ impl Dungeon for Poharan {
         true
     }
 
-    unsafe fn move_to_poharan(&mut self, mut warlock: bool) {
+    unsafe fn move_to_poharan(&mut self, mut bridge_client: bool) {
         loop {
             self.activity.check_game_activity();
 
@@ -235,8 +235,6 @@ impl Dungeon for Poharan {
 
             sleep(time::Duration::from_millis(100));
         }
-
-        self.animation_speed_hack(self.animation_speed());
 
         send_key(VK_W, true);
 
@@ -253,11 +251,11 @@ impl Dungeon for Poharan {
                 break;
             }
 
-            if warlock && self.get_player_pos_y() > -29134f32 {
+            if bridge_client && self.get_player_pos_y() > -29134f32 {
                 send_key(VK_D, true);
                 // the only difference of warlocks is having to move to the right
                 // so handle the client the same as other clients afterwards
-                warlock = false;
+                bridge_client = false;
             }
 
             if !reached_x && self.get_player_pos_x() < 7900f32 {
@@ -266,7 +264,7 @@ impl Dungeon for Poharan {
                 reached_x = true;
             }
 
-            if self.get_animation_speed() > 4.0f32 && self.get_player_pos_y() > -28100f32 {
+            if self.get_animation_speed() == 1.0f32 && self.get_player_pos_y() > -28400f32 {
                 info!("changing animation speed to 4.0 to prevent porting back on the bridge");
                 self.animation_speed_hack(4.0f32);
             }
@@ -299,6 +297,9 @@ impl Dungeon for Poharan {
                     break;
                 }
             }
+
+            // we can't activate auto combat instantly, it's still locked a bit during portal usage
+            sleep(time::Duration::from_millis(500));
 
             info!("activating auto combat to pick up possible loot");
             self.hotkeys_auto_combat_toggle();
