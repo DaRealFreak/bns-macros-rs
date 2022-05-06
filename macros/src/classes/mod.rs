@@ -2,14 +2,18 @@ use std::fmt::{Display, Formatter};
 
 use chrono::Local;
 use windows::Win32::Graphics::Gdi::HDC;
+use crate::classes::assassin::Assassin;
 
 use crate::classes::blademaster::BladeMaster;
 use crate::classes::destroyer::Destroyer;
 use crate::classes::destroyer_third::DestroyerThird;
+use crate::classes::warlock::Warlock;
 
-pub(crate) mod destroyer;
+pub(crate) mod assassin;
 pub(crate) mod blademaster;
+pub(crate) mod destroyer;
 pub(crate) mod destroyer_third;
+pub(crate) mod warlock;
 
 // main functionality of the bns macro
 pub(crate) trait BnsMacro {
@@ -55,10 +59,12 @@ impl MacroDetection for Macro {
     }
 
     unsafe fn detect(&mut self, hdc: HDC) {
-        let implemented_classes: [Box<dyn BnsMacro>; 3] = [
+        let implemented_classes: [Box<dyn BnsMacro>; 5] = [
+            Box::new(Assassin::new()),
             Box::new(BladeMaster::new()),
             Box::new(Destroyer::new()),
             Box::new(DestroyerThird::new()),
+            Box::new(Warlock::new()),
         ];
 
         // check every macro if their respective class is currently active

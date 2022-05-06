@@ -6,8 +6,8 @@ pub(crate) fn create_ini() {
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
         .set("FarmStage", "5")
-        .set("AnimationSpeedHackValue", "8")
-        .set("SlowAnimationSpeedHackValue", "5.5")
+        .set("AnimationSpeedHackValue", "10")
+        .set("SlowAnimationSpeedHackValue", "6.5")
         .set("LogFile", "poharan_multibox.log");
 
     conf.with_section(Some("Pointers"))
@@ -58,8 +58,7 @@ pub(crate) fn create_ini() {
         .set("OutOfLoadingScreen", "0xED5E11")
         .set("PositionLoadingScreen", "1861,1062")
         .set("LoadingScreen", "0x090303")
-        .set("PositionExit", "1770,870")
-        .set("PositionLeaveParty", "321,78");
+        .set("PositionExit", "1770,870");
 
     // user interface settings related to the dungeon elements
     conf.with_section(Some("UserInterfaceDungeon"))

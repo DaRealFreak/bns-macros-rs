@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState, VIRTUAL_KEY};
+use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState};
 use bns_utility::send_key;
 
 use crate::classes::{BnsMacro, BnsMacroCreation};
@@ -35,8 +35,8 @@ impl BnsMacro for Destroyer {
 
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
         // c iframe
-        if GetAsyncKeyState(0x43) < 0 {
-            send_key(VIRTUAL_KEY(0x43), false);
+        if GetAsyncKeyState(Destroyer::skill_searing_strike().0 as i32) < 0 {
+            send_key(Destroyer::skill_searing_strike(), false);
             sleep(time::Duration::from_millis(10));
             BlockInput(true);
             loop {
@@ -50,8 +50,8 @@ impl BnsMacro for Destroyer {
         }
 
         // q iframe
-        if GetAsyncKeyState(0x51) < 0 {
-            send_key(VIRTUAL_KEY(0x51), false);
+        if GetAsyncKeyState(Destroyer::skill_typhoon().0 as i32) < 0 {
+            send_key(Destroyer::skill_typhoon(), false);
             sleep(time::Duration::from_millis(10));
             BlockInput(true);
             loop {
@@ -83,7 +83,7 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            if dps && self.use_fury_after_next_mc {
+            if self.use_fury_after_next_mc {
                 loop {
                     send_key(Destroyer::skill_fury(), true);
                     send_key(Destroyer::skill_fury(), false);
@@ -97,7 +97,7 @@ impl BnsMacro for Destroyer {
                 sleep(time::Duration::from_millis(135));
                 self.use_fury_after_next_mc = false
             } else {
-                if Destroyer::skill_smash_available(hdc) {
+                if dps && Destroyer::skill_smash_available(hdc) {
                     loop {
                         send_key(Destroyer::skill_smash(), true);
                         send_key(Destroyer::skill_smash(), false);
@@ -168,7 +168,7 @@ impl BnsMacro for Destroyer {
         }
 
         // enter fury stance
-        if dps && fury_available && judgment_available {
+        if fury_available && judgment_available {
             if Destroyer::skill_emberstomp_available(hdc) {
                 loop {
                     send_key(Destroyer::skill_emberstomp(), true);

@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::exit;
 use std::thread::sleep;
-use std::time;
+use std::{fs, time};
 
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_SHIFT, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_S, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -45,6 +45,7 @@ pub(crate) struct Aerodrome {
 impl Aerodrome {
     unsafe fn new() -> Aerodrome {
         if !(Path::new("configuration/aerodrome.ini").is_file()) {
+            fs::create_dir_all("configuration");
             configuration::create_ini();
         }
 
@@ -219,6 +220,9 @@ impl Aerodrome {
         info!("selecting stage {}", self.farm_stage());
         self.select_stage();
 
+        // small sleep in remote environment first try on enter button didn't work
+        sleep(time::Duration::from_millis(250));
+
         info!("moving to dungeon");
         self.enter_dungeon();
 
@@ -317,6 +321,46 @@ impl Aerodrome {
             }
         }
 
+        if self.activate_gate() {
+            info!("activating gate for ranking");
+
+            self.animation_speed_hack(self.animation_speed());
+
+            send_key(VK_W, true);
+
+            let start = time::Instant::now();
+            loop {
+                if self.get_player_pos_x() >= 11750f32 {
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 5 {
+                    warn!("unable to activate gate");
+                    send_key(VK_W, false);
+                    return false;
+                }
+            }
+
+            send_key(VK_W, false);
+            sleep(time::Duration::from_millis(50));
+
+            send_key(VK_S, true);
+
+            let start = time::Instant::now();
+            loop {
+                if self.get_player_pos_x() <= 10924f32 {
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 5 {
+                    warn!("unable to walk back to portal position");
+                    send_key(VK_S, false);
+                    return false;
+                }
+            }
+            send_key(VK_S, false);
+        }
+
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
             info!("switching to window handle {:?}", hwnd);
             if !switch_to_hwnd(hwnd.to_owned()) {
@@ -347,8 +391,8 @@ impl Aerodrome {
                     break;
                 }
 
-                // continue spamming f to take the portal if the previous f was ignored
-                if self.portal_icon_visible() {
+                // continue spamming f to take the portal while we didn't get teleported yet
+                if self.get_player_pos_x_by_hwnd(hwnd.to_owned()) < 20000f32 {
                     send_key(VK_F, true);
                     send_key(VK_F, false);
                 } else {
@@ -421,7 +465,17 @@ impl Aerodrome {
     }
 
     unsafe fn move_through_portal(&mut self) -> bool {
+        if !self.move_to_area_2() {
+            warn!("unable to move through the portal");
+            return false;
+        }
+
         for (index, hwnd) in find_window_hwnds_by_name_sorted_creation_time(self.activity.title()).iter().enumerate() {
+            // skip warlock who went first
+            if hwnd.0 == self.start_hwnd.0 {
+                continue;
+            }
+
             info!("moving client {} through portal", index + 1);
 
             info!("switching to window handle {:?}", hwnd);
@@ -430,37 +484,10 @@ impl Aerodrome {
                 exit(-1);
             }
 
-            info!("deactivating auto combat on the warlock");
-            self.hotkeys_auto_combat_toggle();
-
-            info!("set camera to 0 degrees");
-            self.change_camera_to_degrees(0f32);
-
-            send_key(VK_W, true);
-
-            let mut sprinting = false;
-            let start = time::Instant::now();
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_combat() && !sprinting {
-                    sleep(time::Duration::from_millis(150));
-                    send_key(VK_SHIFT, true);
-                    sleep(time::Duration::from_millis(2));
-                    send_key(VK_SHIFT, false);
-                    sprinting = true;
-                }
-
-                if start.elapsed().as_secs() > 60 {
-                    warn!("ran into a timeout");
-                    return false;
-                }
-
-                if self.get_player_pos_x() >= 52388f32 {
-                    break;
-                }
+            if !self.move_to_area_2() {
+                warn!("unable to move through the portal");
+                return false;
             }
-            send_key(VK_W, false);
         }
 
         info!("switching to window handle {:?}", self.start_hwnd);
@@ -535,7 +562,7 @@ impl Aerodrome {
                 return false;
             }
 
-            sleep(time::Duration::from_millis(500));
+            sleep(time::Duration::from_millis(20));
         }
 
         info!("sleep to let clients pick up possible loot");
@@ -569,6 +596,9 @@ impl Aerodrome {
                 warn!("unable to switch to window handle {:?}, game probably crashed, exiting", hwnd);
                 exit(-1);
             }
+
+            // safety sleep to update window HWND for position check
+            sleep(time::Duration::from_millis(50));
 
             info!("leave dungeon for client {}", index + 1);
             if !self.leave_dungeon_client() {
@@ -613,7 +643,9 @@ impl Aerodrome {
                 return self.fail_safe(hwnd);
             }
 
-            if self.out_of_loading_screen() {
+            // wait until loading screen is over or we revive is visible
+            // (grey screen changes pixels which may affect out of loading screen functionality)
+            if self.out_of_loading_screen() || self.revive_visible() {
                 break;
             }
 
@@ -653,6 +685,13 @@ impl Aerodrome {
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
+
+            if self.resurrect_visible() {
+                // repeat escape one more time in case we cancelled resurrect with the previous escape
+                send_key(VK_ESCAPE, true);
+                send_key(VK_ESCAPE, false);
+                sleep(time::Duration::from_millis(500));
+            }
             self.menu_exit();
         }
     }

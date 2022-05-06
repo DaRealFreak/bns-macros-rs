@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::thread::sleep;
-use std::time;
+use std::{fs, time};
 
 use ini::Ini;
 use log::{info, warn};
@@ -45,6 +45,7 @@ pub(crate) struct AerodromeExp {
 impl AerodromeExp {
     unsafe fn new() -> AerodromeExp {
         if !(Path::new("configuration/aerodrome-exp.ini").is_file()) {
+            fs::create_dir_all("configuration");
             configuration::create_ini();
         }
 

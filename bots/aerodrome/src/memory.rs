@@ -30,10 +30,14 @@ pub(crate) trait Memory {
     unsafe fn offsets_dungeon_stage(&self) -> Vec<u64>;
     unsafe fn offsets_lobby_number(&self) -> Vec<u64>;
     unsafe fn animation_speed_hack(&mut self, speed: f32);
+    unsafe fn get_animation_speed(&mut self) -> f32;
     unsafe fn change_camera_to_degrees(&mut self, degree: f32);
     unsafe fn get_player_pos_x(&mut self) -> f32;
+    unsafe fn get_player_pos_x_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn get_player_pos_y(&mut self) -> f32;
+    unsafe fn get_player_pos_y_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn get_player_pos_z(&mut self) -> f32;
+    unsafe fn get_player_pos_z_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn set_dungeon_stage(&mut self);
     unsafe fn get_player_lobby_number(&mut self, hwnd: HWND) -> u64;
 }
@@ -116,6 +120,10 @@ impl Memory for Aerodrome {
         self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_animation_speed(), speed);
     }
 
+    unsafe fn get_animation_speed(&mut self) -> f32 {
+        self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_animation_speed(), 0f32)
+    }
+
     unsafe fn change_camera_to_degrees(&mut self, degree: f32) {
         for _ in 0..2 {
             self.change_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_camera_yaw(), degree);
@@ -127,12 +135,24 @@ impl Memory for Aerodrome {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_x(), 0f32)
     }
 
+    unsafe fn get_player_pos_x_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_x(), 0f32)
+    }
+
     unsafe fn get_player_pos_y(&mut self) -> f32 {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_y(), 0f32)
     }
 
+    unsafe fn get_player_pos_y_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_y(), 0f32)
+    }
+
     unsafe fn get_player_pos_z(&mut self) -> f32 {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_z(), 0f32)
+    }
+
+    unsafe fn get_player_pos_z_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_z(), 0f32)
     }
 
     unsafe fn set_dungeon_stage(&mut self) {
