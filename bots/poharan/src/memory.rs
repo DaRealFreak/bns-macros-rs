@@ -34,8 +34,11 @@ pub(crate) trait Memory {
     unsafe fn get_camera_degrees(&mut self) -> f32;
     unsafe fn change_camera_to_degrees(&mut self, degree: f32);
     unsafe fn get_player_pos_x(&mut self) -> f32;
+    unsafe fn get_player_pos_x_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn get_player_pos_y(&mut self) -> f32;
+    unsafe fn get_player_pos_y_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn get_player_pos_z(&mut self) -> f32;
+    unsafe fn get_player_pos_z_by_hwnd(&mut self, hwnd: HWND) -> f32;
     unsafe fn set_dungeon_stage(&mut self);
     unsafe fn get_player_lobby_number(&mut self, hwnd: HWND) -> u64;
 }
@@ -137,12 +140,24 @@ impl Memory for Poharan {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_x(), 0f32)
     }
 
+    unsafe fn get_player_pos_x_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_x(), 0f32)
+    }
+
     unsafe fn get_player_pos_y(&mut self) -> f32 {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_y(), 0f32)
     }
 
+    unsafe fn get_player_pos_y_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_y(), 0f32)
+    }
+
     unsafe fn get_player_pos_z(&mut self) -> f32 {
         self.read_memory_value(GetForegroundWindow(), self.base_address_player(), self.offsets_player_z(), 0f32)
+    }
+
+    unsafe fn get_player_pos_z_by_hwnd(&mut self, hwnd: HWND) -> f32 {
+        self.read_memory_value(hwnd, self.base_address_player(), self.offsets_player_z(), 0f32)
     }
 
     unsafe fn set_dungeon_stage(&mut self) {
