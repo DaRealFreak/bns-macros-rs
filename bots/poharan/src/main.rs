@@ -404,7 +404,7 @@ impl Poharan {
         loop {
             // Tae Jangum dead and dynamic quest started
             if self.dynamic_visible() {
-                info!("found dynamic quest");
+                info!("found dynamic quest, fighting Tae Jangum took {} seconds", start.elapsed().as_secs());
                 break;
             }
 
