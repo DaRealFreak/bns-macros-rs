@@ -1,7 +1,8 @@
+use std::{fs, time};
 use std::collections::HashMap;
 use std::path::Path;
+use std::process::exit;
 use std::thread::sleep;
-use std::{fs, time};
 
 use ini::Ini;
 use log::{info, warn};
@@ -36,7 +37,7 @@ pub(crate) struct AerodromeExp {
     gained_exp: u64,
     successful_runs: Vec<u128>,
     failed_runs: Vec<u128>,
-    run_start_timestamp: std::time::Instant,
+    run_start_timestamp: time::Instant,
     run_start_exp: u64,
     run_failed: bool,
     settings: Ini,
@@ -45,8 +46,12 @@ pub(crate) struct AerodromeExp {
 impl AerodromeExp {
     unsafe fn new() -> AerodromeExp {
         if !(Path::new("configuration/aerodrome-exp.ini").is_file()) {
-            fs::create_dir_all("configuration");
-            configuration::create_ini();
+            if fs::create_dir_all("configuration").is_ok() {
+                configuration::create_ini();
+            } else {
+                warn!("unable to create configuration folder, exiting");
+                exit(-1);
+            }
         }
 
         let test = Ini::load_from_file("configuration/aerodrome-exp.ini").unwrap();

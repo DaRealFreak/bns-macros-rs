@@ -39,15 +39,19 @@ pub(crate) struct Poharan {
     run_count: u128,
     successful_runs: Vec<u128>,
     failed_runs: Vec<u128>,
-    run_start_timestamp: std::time::Instant,
+    run_start_timestamp: time::Instant,
     settings: Ini,
 }
 
 impl Poharan {
     unsafe fn new() -> Poharan {
         if !(Path::new("configuration/poharan.ini").is_file()) {
-            fs::create_dir_all("configuration");
-            configuration::create_ini();
+            if fs::create_dir_all("configuration").is_ok() {
+                configuration::create_ini();
+            } else {
+                warn!("unable to create configuration folder, exiting");
+                exit(-1);
+            }
         }
 
         let test = Ini::load_from_file("configuration/poharan.ini").unwrap();
@@ -639,7 +643,7 @@ impl Poharan {
             self.activity.check_game_activity();
             // -31912f32 is 31 meters to the first fm
             // -31715f32 is 28 meters to the second fm, hope the first fm follows is a few meters at least
-            if self.get_player_pos_y() > -31715f32 {
+            if self.get_player_pos_y() > -31615f32 {
                 info!("reached second position on the bridge");
                 break;
             }
