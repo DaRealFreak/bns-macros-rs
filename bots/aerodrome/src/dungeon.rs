@@ -17,6 +17,7 @@ pub(crate) trait Dungeon {
     unsafe fn exit_portal_icon_visible(&self) -> bool;
     unsafe fn bonus_reward_selection_visible(&self) -> bool;
     unsafe fn revive_visible(&self) -> bool;
+    unsafe fn resurrect_visible(&self) -> bool;
     unsafe fn move_to_bulmalo(&mut self) -> bool;
     unsafe fn move_to_area_2(&mut self) -> bool;
     unsafe fn move_to_maximon(&mut self) -> bool;
