@@ -238,7 +238,7 @@ impl Dungeon for Poharan {
                 reached_x = true;
             }
 
-            if self.get_player_pos_y() > -29000f32 && self.get_player_pos_z() < -339f32 {
+            if self.get_player_pos_y() > -27225f32 && self.get_player_pos_z() < -339f32 {
                 // we dropped in the pit with poharan
                 info!("position reached");
                 break;
