@@ -83,7 +83,7 @@ impl BnsMacro for Destroyer {
                 }
             }
 
-            if dps && self.use_fury_after_next_mc {
+            if self.use_fury_after_next_mc {
                 loop {
                     send_key(Destroyer::skill_fury(), true);
                     send_key(Destroyer::skill_fury(), false);
