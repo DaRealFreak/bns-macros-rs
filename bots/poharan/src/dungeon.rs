@@ -173,7 +173,13 @@ impl Dungeon for Poharan {
             sleep(time::Duration::from_millis(100));
         }
 
-        send_keys(vec![VK_W, VK_A, VK_SHIFT], true);
+        if self.get_player_pos_y() <= -35550f32 {
+            send_key(VK_D, true);
+        } else {
+            send_key(VK_A, true);
+        }
+
+        send_keys(vec![VK_W, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
 
         let start = time::Instant::now();
@@ -182,8 +188,8 @@ impl Dungeon for Poharan {
         loop {
             self.activity.check_game_activity();
 
-            if !reached_y && self.get_player_pos_y() <= -35750f32 {
-                send_key(VK_A, false);
+            if !reached_y && (self.get_player_pos_y() <= -35750f32 && self.get_player_pos_y() >= -35850f32) {
+                send_keys(vec![VK_A, VK_D], false);
                 reached_y = true;
             }
 
@@ -197,6 +203,7 @@ impl Dungeon for Poharan {
             }
 
             if start.elapsed().as_secs() > 10 {
+                send_keys(vec![VK_A, VK_D], false);
                 warn!("unable to move to portal for poharan, abandoning run");
                 return false;
             }
