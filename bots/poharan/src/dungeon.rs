@@ -264,7 +264,7 @@ impl Dungeon for Poharan {
                 reached_x = true;
             }
 
-            if self.get_animation_speed() == 1.0f32 && self.get_player_pos_y() > -28400f32 {
+            if (self.get_animation_speed() == 1.0f32 || self.get_animation_speed() == self.animation_speed()) && self.get_player_pos_y() > -28400f32 {
                 info!("changing animation speed to 4.0 to prevent porting back on the bridge");
                 self.animation_speed_hack(4.0f32);
             }
