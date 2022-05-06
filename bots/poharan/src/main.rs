@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::exit;
 use std::thread::sleep;
-use std::time;
+use std::{fs, time};
 
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_V, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -45,6 +45,7 @@ pub(crate) struct Poharan {
 impl Poharan {
     unsafe fn new() -> Poharan {
         if !(Path::new("configuration/poharan.ini").is_file()) {
+            fs::create_dir_all("configuration");
             configuration::create_ini();
         }
 
@@ -318,25 +319,46 @@ impl Poharan {
 
         info!("move into position for boss 1");
         send_key(VK_W, true);
+
+        let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
 
             if self.get_player_pos_y() > -36410f32 {
+                send_key(VK_W, false);
                 info!("reached y position for Tae Jangum");
                 break;
             }
+
+            if start.elapsed().as_secs() > 10 {
+                send_key(VK_W, false);
+                warn!("timeout while moving to y position, abandoning run");
+                return false;
+            }
         }
-        send_key(VK_W, false);
 
         send_key(VK_D, true);
-        sleep(self.get_sleep_time(9000, false));
-        send_key(VK_W, true);
-        sleep(self.get_sleep_time(6000, false));
-        send_keys(vec![VK_D, VK_W], false);
 
-        send_keys(vec![VK_A, VK_S], true);
-        sleep(self.get_sleep_time(200, false));
-        send_keys(vec![VK_A, VK_S], false);
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_x() < 10900f32 {
+                send_key(VK_D, false);
+                info!("reached x position for Tae Jangum");
+                break;
+            }
+
+            if start.elapsed().as_secs() > 10 {
+                send_key(VK_D, false);
+                warn!("timeout while moving to x position for Tae Jangum, abandoning run");
+                return false;
+            }
+        }
+
+        send_key(VK_W, true);
+        sleep(self.get_sleep_time(4000));
+        send_key(VK_W, false);
 
         self.fight_boss_1()
     }
@@ -398,10 +420,10 @@ impl Poharan {
         }
 
         info!("sleep to let warlock pick up possible loot or finish leftover mobs");
-        sleep(time::Duration::from_secs(3));
+        sleep(time::Duration::from_secs(4));
 
         info!("sleep to let warlock run into the return position");
-        sleep(self.get_sleep_time(6000, false));
+        sleep(self.get_sleep_time(6000));
 
         info!("deactivating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
@@ -415,21 +437,7 @@ impl Poharan {
             return false;
         }
 
-        info!("wait to get out of combat");
-        loop {
-            self.activity.check_game_activity();
-
-            if self.out_of_combat() {
-                break;
-            }
-
-            if self.revive_visible() {
-                warn!("somehow died after Tae Jangum, abandoning run");
-                return false;
-            }
-
-            sleep(time::Duration::from_millis(100));
-        }
+        sleep(time::Duration::from_millis(150));
 
         info!("set camera to 90 degrees");
         self.change_camera_to_degrees(90f32);
@@ -440,49 +448,136 @@ impl Poharan {
     unsafe fn move_to_bridge(&mut self) -> bool {
         info!("move warlock to the bridge");
 
-        // move into the corner again in case we got in range of the mobs before Tae Jangum
-        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
-        send_key(VK_SHIFT, false);
-        sleep(self.get_sleep_time(5750, false));
-        send_keys(vec![VK_W, VK_D], false);
+        if self.get_player_pos_y() > -35600f32 {
+            send_key(VK_S, true);
+            let start = time::Instant::now();
+            loop {
+                self.activity.check_game_activity();
 
-        // progress onto the bridge from here on
-        send_key(VK_S, true);
-        sleep(self.get_sleep_time(5000, false));
-        send_key(VK_S, false);
+                if self.get_player_pos_y() <= -35600f32 {
+                    send_key(VK_S, false);
+                    break;
+                }
 
-        send_key(VK_A, true);
+                if start.elapsed().as_secs() > 10 {
+                    send_key(VK_S, false);
+                    warn!("unable to get to bridge height, abandoning run");
+                    return false;
+                }
+            }
+        }
+
+        let pos_x = self.get_player_pos_x();
+        if pos_x < 11530f32 {
+            send_key(VK_A, true);
+            info!("moving left to get on the bridge");
+        } else if pos_x > 11830f32 {
+            send_key(VK_D, true);
+            info!("moving right to get on the bridge");
+        }
+
         let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
 
-            if self.get_player_pos_x() >= 11685f32 {
+            let pos_x = self.get_player_pos_x();
+            if pos_x >= 11530f32 && pos_x <= 11830f32 {
+                send_keys(vec![VK_A, VK_D], false);
+                info!("reached position to move on the bridge");
                 break;
             }
 
-            if start.elapsed().as_millis() >= self.get_sleep_time(4200, false).as_millis() {
-                break;
+            if start.elapsed().as_secs() > 10 {
+                send_keys(vec![VK_A, VK_D], false);
+                warn!("unable to get into position to move onto the bridge, abandoning run");
+                return false;
             }
         }
-        send_key(VK_A, false);
 
+        // move at the end of the first bridge part
         send_key(VK_W, true);
-        sleep(self.get_sleep_time(11000, false));
-        send_key(VK_W, false);
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
 
-        send_key(VK_S, true);
-        sleep(self.get_sleep_time(3000, false));
-        send_key(VK_S, false);
+            if self.get_player_pos_y() >= -34000f32 {
+                send_key(VK_W, false);
+                break;
+            }
+
+            if start.elapsed().as_secs() > 10 {
+                send_key(VK_W, false);
+                warn!("unable to get at the end of the first bridge part, abandoning run");
+                return false;
+            }
+        }
+
+        // let possible lag setbacks happen
+        sleep(time::Duration::from_millis(150));
+
+        if self.get_player_pos_y() >= -33650f32 {
+            send_key(VK_S, true);
+            let start = time::Instant::now();
+            loop {
+                self.activity.check_game_activity();
+
+                if self.get_player_pos_y() < -33650f32 {
+                    send_key(VK_S, false);
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 10 {
+                    send_key(VK_S, false);
+                    warn!("unable to get out of the hook part on the bridge, abandoning run");
+                    return false;
+                }
+            }
+        }
 
         send_key(VK_D, true);
-        sleep(self.get_sleep_time(12000, false));
-        send_key(VK_D, false);
 
-        send_key(VK_A, true);
-        sleep(self.get_sleep_time(400, false));
-        send_key(VK_A, false);
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if self.get_player_pos_x() < 9000f32 {
+                send_key(VK_D, false);
+                break;
+            }
+
+            if start.elapsed().as_secs() > 10 {
+                send_key(VK_D, false);
+                warn!("unable to move to the right part of the bridge, abandoning run");
+                return false;
+            }
+        }
+
+        // let possible lag setbacks happen
+        sleep(time::Duration::from_millis(150));
+
+        if self.get_player_pos_x() < 8900f32 {
+            send_key(VK_A, true);
+            let start = time::Instant::now();
+            loop {
+                self.activity.check_game_activity();
+
+                if self.get_player_pos_x() >= 8900f32 {
+                    send_key(VK_A, false);
+                    break;
+                }
+
+                if start.elapsed().as_secs() > 10 {
+                    send_key(VK_A, false);
+                    warn!("unable to move out of the right bridge boundary, abandoning run");
+                    return false;
+                }
+            }
+        }
 
         info!("progressing onto the bridge");
+
+        info!("using slow animation speed to properly let the force master follow the player");
+        self.animation_speed_hack(self.animation_speed_slow());
 
         send_key(VK_W, true);
         let start = time::Instant::now();
@@ -494,7 +589,7 @@ impl Poharan {
                 break;
             }
 
-            if start.elapsed().as_millis() > self.get_sleep_time(15000, false).as_millis() {
+            if start.elapsed().as_millis() > self.get_sleep_time(15000).as_millis() {
                 break;
             }
         }
@@ -506,17 +601,21 @@ impl Poharan {
         let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
-
-            if self.get_player_pos_y() > -31300f32 {
+            // -31912f32 is 31 meters to the first fm
+            // -31715f32 is 28 meters to the second fm, hope the first fm follows is a few meters at least
+            if self.get_player_pos_y() > -31715f32 {
                 info!("reached second position on the bridge");
                 break;
             }
 
-            if start.elapsed().as_millis() > self.get_sleep_time(15000, false).as_millis() {
+            if start.elapsed().as_millis() > self.get_sleep_time(15000).as_millis() {
                 break;
             }
         }
         send_key(VK_W, false);
+
+        info!("returning to normal animation speed hack");
+        self.animation_speed_hack(self.animation_speed());
 
         info!("activating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
@@ -591,38 +690,6 @@ impl Poharan {
         info!("turning camera to 90 degrees");
         self.change_camera_to_degrees(90f32);
 
-        info!("moving further down the bridge");
-        send_key(VK_W, true);
-        sleep(self.get_sleep_time(7000, false));
-        send_key(VK_W, false);
-
-        info!("activating auto combat on the warlock");
-        self.hotkeys_auto_combat_toggle();
-
-        info!("sleeping 1 second to get into combat if there are any monsters left");
-        sleep(time::Duration::from_secs(1));
-
-        let start = time::Instant::now();
-        loop {
-            self.activity.check_game_activity();
-
-            if start.elapsed().as_secs() > 120 {
-                warn!("unable to get out of combat, continue with Poharan for the clients");
-                break;
-            }
-
-            if self.out_of_combat() {
-                info!("warlock is out of combat");
-                break;
-            }
-        }
-
-        info!("deactivating auto combat on the warlock");
-        self.hotkeys_auto_combat_toggle();
-
-        info!("turning camera to 90 degrees");
-        self.change_camera_to_degrees(90f32);
-
         info!("moving warlock to Poharan");
         self.move_to_poharan(true);
 
@@ -683,7 +750,7 @@ impl Poharan {
         sleep(time::Duration::from_millis(4000));
 
         info!("sleep to let all clients run into the return position");
-        sleep(self.get_sleep_time(6000, false));
+        sleep(self.get_sleep_time(6000));
 
         self.leave_dungeon()
     }
@@ -698,7 +765,7 @@ impl Poharan {
         info!("disable animation speed hack for the warlock");
         self.animation_speed_hack(1.0f32);
 
-        if !self.leave_dungeon_client(true) {
+        if !self.leave_dungeon_client() {
             return false;
         }
 
@@ -715,7 +782,7 @@ impl Poharan {
             }
 
             info!("leave dungeon for client {}", index + 1);
-            if !self.leave_dungeon_client(false) {
+            if !self.leave_dungeon_client() {
                 return false;
             }
         }
@@ -803,73 +870,8 @@ impl Poharan {
         }
     }
 
-    unsafe fn leave_party(&self) {
-        info!("trying to leave party");
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                break;
-            }
-
-            // disable fly hack if we ran into a timeout while disabling it
-            self.hotkeys_fly_hack_disable();
-
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
-            }
-
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
-
-            // open menu and click on leave party
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_leave_party();
-        }
-
-        if self.in_loading_screen() {
-            info!("in loading screen, wait out loading screen");
-            loop {
-                self.activity.check_game_activity();
-
-                if self.out_of_loading_screen() {
-                    break;
-                }
-            }
-        }
-
-        loop {
-            self.activity.check_game_activity();
-
-            if self.in_f8_lobby() || self.in_loading_screen() {
-                info!("found f8 lobby, leave party successful");
-                break;
-            }
-
-            send_keys(vec![VK_SHIFT, VK_V], true);
-            send_keys(vec![VK_SHIFT, VK_V], false);
-
-            // open menu and click on leave party
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_exit();
-        }
-    }
-
-    unsafe fn get_sleep_time(&self, original_time: u64, slow: bool) -> time::Duration {
-        if slow {
-            time::Duration::from_millis((original_time as f32 / self.animation_speed_slow()) as u64)
-        } else {
-            time::Duration::from_millis((original_time as f32 / self.animation_speed()) as u64)
-        }
+    unsafe fn get_sleep_time(&mut self, original_time: u64) -> time::Duration {
+        time::Duration::from_millis((original_time as f32 / self.get_animation_speed() as f32) as u64)
     }
 }
 

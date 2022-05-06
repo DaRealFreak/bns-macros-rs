@@ -1,4 +1,3 @@
-use std::ops::Add;
 use std::thread::sleep;
 use std::time;
 
@@ -24,8 +23,7 @@ pub(crate) trait Dungeon {
     unsafe fn open_portal(&mut self, boss: u8) -> bool;
     unsafe fn use_poharan_portal(&mut self) -> bool;
     unsafe fn move_to_poharan(&mut self, warlock: bool);
-    unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool;
-    unsafe fn leave_dungeon_client_b1_drop_route(&mut self) -> bool;
+    unsafe fn leave_dungeon_client(&mut self) -> bool;
 }
 
 impl Dungeon for Poharan {
@@ -215,15 +213,15 @@ impl Dungeon for Poharan {
         // sleep tiny bit so sprinting doesn't bug
         sleep(time::Duration::from_millis(250));
 
-        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
+        if warlock {
+            send_key(VK_D, true);
+        }
+        send_keys(vec![VK_W, VK_SHIFT], true);
         send_key(VK_SHIFT, false);
 
         let start = time::Instant::now();
-        let mut timeout = self.get_sleep_time(35000, false);
-        if warlock {
-            // sleep additional 10 seconds for the warlock since he is further away
-            timeout = timeout.add(self.get_sleep_time(10000, false));
-        }
+        let mut reached_x = false;
+        let timeout = self.get_sleep_time(25000);
 
         loop {
             self.activity.check_game_activity();
@@ -234,8 +232,15 @@ impl Dungeon for Poharan {
                 break;
             }
 
-            if self.get_player_pos_x() > 7150f32 && self.get_player_pos_y() > -25600f32 {
-                info!("reached position");
+            if !reached_x && self.get_player_pos_x() < 8039f32 {
+                // we reached the last part of the bridge
+                send_key(VK_D, false);
+                reached_x = true;
+            }
+
+            if self.get_player_pos_y() > -29000f32 && self.get_player_pos_z() < -339f32 {
+                // we dropped in the pit with poharan
+                info!("position reached");
                 break;
             }
         }
@@ -243,30 +248,12 @@ impl Dungeon for Poharan {
         send_keys(vec![VK_W, VK_D], false);
     }
 
-    unsafe fn leave_dungeon_client(&mut self, warlock: bool) -> bool {
+    unsafe fn leave_dungeon_client(&mut self) -> bool {
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
 
-        info!("turning camera to 270 degrees");
-        self.change_camera_to_degrees(270f32);
-
-        info!("waiting to get out of combat for consistent walking speed");
-        let start = time::Instant::now();
-        loop {
-            self.activity.check_game_activity();
-
-            if start.elapsed().as_secs() > 120 {
-                warn!("unable to get out of combat, leave party to start failsafe");
-                self.leave_party();
-                return false;
-            }
-
-            if self.out_of_combat() {
-                break;
-            }
-
-            sleep(time::Duration::from_millis(100));
-        }
+        info!("turning camera to 90 degrees");
+        self.change_camera_to_degrees(90f32);
 
         info!("enable slow animation speed hack");
         self.animation_speed_hack(self.animation_speed_slow());
@@ -274,14 +261,22 @@ impl Dungeon for Poharan {
         sleep(time::Duration::from_millis(250));
 
         send_keys(vec![VK_W, VK_D], true);
-        sleep(self.get_sleep_time(1500, true));
-        send_key(VK_D, false);
-        sleep(self.get_sleep_time(1500, true));
-        send_key(VK_W, false);
 
         let start = time::Instant::now();
+        let mut reached_x = false;
+        let mut reached_y = false;
         loop {
             self.activity.check_game_activity();
+
+            if !reached_x && self.get_player_pos_x() < 7450f32 {
+                send_key(VK_D, false);
+                reached_x = true;
+            }
+
+            if !reached_y && self.get_player_pos_y() > -26700f32 {
+                send_key(VK_W, false);
+                reached_y = true;
+            }
 
             if self.exit_portal_icon_visible() {
                 break;
@@ -293,17 +288,12 @@ impl Dungeon for Poharan {
             }
         }
 
+        send_keys(vec![VK_W, VK_D], false);
+        sleep(time::Duration::from_millis(150));
+
         if !self.exit_portal_icon_visible() {
-            if warlock {
-                warn!("exit portal icon not visible, abandoning run");
-                return false;
-            } else {
-                info!("probably dropped something from Tae Jangum, trying second route");
-                if !self.leave_dungeon_client_b1_drop_route() {
-                    warn!("exit portal icon not visible, abandoning run");
-                    return false;
-                }
-            }
+            warn!("exit portal icon not visible, abandoning run");
+            return false;
         }
 
         info!("using exit portal");
@@ -370,19 +360,5 @@ impl Dungeon for Poharan {
         }
 
         true
-    }
-
-    unsafe fn leave_dungeon_client_b1_drop_route(&mut self) -> bool {
-        info!("turning camera to 90 degrees");
-        self.change_camera_to_degrees(90f32);
-
-        send_keys(vec![VK_W, VK_D, VK_SHIFT], true);
-        send_key(VK_SHIFT, false);
-        sleep(self.get_sleep_time(3000, true));
-        send_keys(vec![VK_D, VK_W], false);
-
-        sleep(time::Duration::from_millis(500));
-
-        self.exit_portal_icon_visible()
     }
 }
