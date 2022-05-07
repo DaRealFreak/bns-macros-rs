@@ -696,6 +696,9 @@ impl Poharan {
         info!("deactivating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
 
+        info!("turning camera to 90 degrees");
+        self.change_camera_to_degrees(90f32);
+
         // auto combat bugging sometimes, so activate it only after moving a bit
         send_key(VK_W, true);
         sleep(time::Duration::from_millis(100));
