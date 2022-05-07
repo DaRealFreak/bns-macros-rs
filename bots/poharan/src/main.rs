@@ -696,6 +696,37 @@ impl Poharan {
         info!("deactivating auto combat on the warlock");
         self.hotkeys_auto_combat_toggle();
 
+        // auto combat bugging sometimes, so activate it only after moving a bit
+        send_key(VK_W, true);
+        sleep(time::Duration::from_millis(500));
+        send_key(VK_W, false);
+
+        info!("activating auto combat on the warlock again in case we missed the second force master");
+        self.hotkeys_auto_combat_toggle();
+
+        let start = time::Instant::now();
+        loop {
+            self.activity.check_game_activity();
+
+            if start.elapsed().as_secs() > 120 {
+                warn!("unable to get out of combat, continue with Poharan for the clients");
+                break;
+            }
+
+            if start.elapsed().as_secs() > 1 && self.out_of_combat() {
+                info!("warlock is out of combat");
+                break;
+            }
+
+            if self.revive_visible() {
+                warn!("died with the warlock on bridge, abandoning run");
+                return false;
+            }
+        }
+
+        info!("deactivating auto combat on the warlock");
+        self.hotkeys_auto_combat_toggle();
+
         info!("turning camera to 90 degrees");
         self.change_camera_to_degrees(90f32);
 
