@@ -102,7 +102,9 @@ impl AerodromeExp {
                 info!("starting fail safe");
                 self.fail_safe();
 
-                self.enter_lobby();
+                if !self.return_lobby() {
+                    self.enter_lobby();
+                }
             } else {
                 if self.run_failed {
                     self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
@@ -240,6 +242,8 @@ impl AerodromeExp {
                 self.hotkeys_use_repair_tools();
                 sleep(time::Duration::from_millis(250));
             }
+        } else {
+            sleep(time::Duration::from_millis(500));
         }
 
         info!("enable animation speed hack for the warlock");
@@ -304,7 +308,7 @@ impl AerodromeExp {
 
     unsafe fn kill_dummies(&mut self) -> bool {
         self.change_camera_to_degrees(90f32);
-        sleep(time::Duration::from_millis(4000));
+        sleep(time::Duration::from_millis(4500));
 
         send_key(VK_W, true);
         sleep(time::Duration::from_millis(50));
@@ -313,7 +317,7 @@ impl AerodromeExp {
         info!("cc'ing the dummies");
         for _ in 0..10 {
             self.hotkeys_dummy_opener();
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(70));
         }
 
         info!("starting auto combat");
@@ -376,7 +380,11 @@ impl AerodromeExp {
             }
 
             if self.out_of_combat() {
-                return false;
+                if self.return_lobby() {
+                    break;
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -434,14 +442,11 @@ impl AerodromeExp {
         let average_run_time_fail: u128 = sum / (if self.failed_runs.len() > 0 { self.failed_runs.len() } else { 1 }) as u128;
 
         let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
-        let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
-
-        let average_exp_per_hour = expected_successful_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
+        let average_exp_per_hour = average_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
         let next_level = (self.next_level_exp() as f64 - self.current_exp() as f64) / (if average_exp_per_hour > 0f64 { average_exp_per_hour } else { 1f64 });
 
         info!("runs done: {} (died in {} out of {} runs ({:.2}%)), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
         info!("gained exp: {}, total gained exp: {}, expected exp per hour: {:.2}, expected level up in {:.2} hours", (self.current_exp() - self.run_start_exp), self.gained_exp, average_exp_per_hour, next_level);
-        info!("expected runs per hour: {:.2}", expected_successful_runs_per_hour);
     }
 
     unsafe fn fail_safe(&mut self) {
