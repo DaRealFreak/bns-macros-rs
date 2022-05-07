@@ -686,29 +686,25 @@ impl Aerodrome {
             // disable fly hack if we ran into a timeout while disabling it
             self.hotkeys_fly_hack_disable();
 
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
-            }
+            if !self.resurrect_visible() {
+                // send every possibly required key to get out of quest windows/dialogues
+                for _ in 0..10 {
+                    // spam Y and F more often before any N key interaction than N to accept quests
+                    send_keys(vec![VK_Y, VK_F], true);
+                    send_keys(vec![VK_Y, VK_F], false);
+                    sleep(time::Duration::from_millis(100));
+                }
 
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
+                send_keys(vec![VK_Y, VK_N, VK_F], true);
+                send_keys(vec![VK_Y, VK_N, VK_F], false);
+                sleep(time::Duration::from_millis(150));
+            }
 
             // open menu and click on exit
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
 
-            if self.resurrect_visible() {
-                // repeat escape one more time in case we cancelled resurrect with the previous escape
-                send_key(VK_ESCAPE, true);
-                send_key(VK_ESCAPE, false);
-                sleep(time::Duration::from_millis(500));
-            }
             self.menu_exit();
         }
     }

@@ -91,7 +91,7 @@ impl Dungeon for Aerodrome {
                 return false;
             }
 
-            if self.get_player_pos_x() > 30805f32 {
+            if self.get_player_pos_x() > 30400f32 {
                 info!("reached boss 1 position");
                 break;
             }
@@ -215,7 +215,7 @@ impl Dungeon for Aerodrome {
                 return false;
             }
 
-            if self.get_player_pos_x() > 69650f32 {
+            if self.get_player_pos_x() > 69200f32 {
                 info!("reached position");
                 break;
             }
@@ -375,19 +375,19 @@ impl Dungeon for Aerodrome {
                 break;
             }
 
-            if self.get_player_pos_y() < -12850f32 {
+            if self.get_player_pos_y() < -12880f32 {
                 send_key(VK_A, false);
                 reached_left = true;
             }
 
-            if self.get_player_pos_x() > 71000f32 {
+            if self.get_player_pos_x() > 71150f32 {
                 send_key(VK_W, false);
                 reached_front = true;
             }
 
             // timeout
-            if start.elapsed().as_secs() > 10 {
-                warn!("unable to get player into position within 10 seconds, abandoning run");
+            if start.elapsed().as_secs() > 20 {
+                warn!("unable to get player into position within 20 seconds, abandoning run");
                 return false;
             }
 
