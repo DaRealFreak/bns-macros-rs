@@ -226,6 +226,9 @@ impl Dungeon for Poharan {
     }
 
     unsafe fn move_to_poharan(&mut self, mut bridge_client: bool) {
+        // sleep before checks to ensure we switched to the correct window before sending inputs
+        sleep(time::Duration::from_millis(500));
+
         loop {
             self.activity.check_game_activity();
 
