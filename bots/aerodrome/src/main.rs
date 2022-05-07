@@ -447,7 +447,7 @@ impl Aerodrome {
         self.activate_auto_combat();
 
         // sleep to get into combat before checking out of combat for fight over
-        sleep(time::Duration::from_secs(1));
+        sleep(time::Duration::from_secs(10));
 
         let start = time::Instant::now();
         loop {
