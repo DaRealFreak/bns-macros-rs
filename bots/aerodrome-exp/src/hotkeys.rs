@@ -75,8 +75,10 @@ pub(crate) unsafe fn press_keys(properties: &Properties, hotkey: &str) {
 
     for hotkey in raw_hotkeys {
         let hotkey_without_prefix = hotkey.trim_start_matches("0x");
-        let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
-        keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        if hotkey != "" {
+            let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
+            keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        }
     }
 
     send_keys(keys.clone(), true);
