@@ -15,6 +15,7 @@ pub(crate) trait UserInterface {
     unsafe fn soup_active(&self) -> bool;
     unsafe fn exp_charm_active(&self) -> bool;
     unsafe fn menu_escape(&self);
+    unsafe fn menu_exit(&self);
 }
 
 impl UserInterface for AerodromeExp {
@@ -60,12 +61,23 @@ impl UserInterface for AerodromeExp {
 
     unsafe fn menu_escape(&self) {
         let settings = self.settings.section(Some("UserInterfaceGeneral")).unwrap();
-        let position_enter = settings.get("PositionEscape").unwrap().split(",");
-        let coordinates_enter: Vec<i32> = position_enter.map(|s| s.parse::<i32>().unwrap()).collect();
+        let position_escape = settings.get("PositionEscape").unwrap().split(",");
+        let coordinates_escape: Vec<i32> = position_escape.map(|s| s.parse::<i32>().unwrap()).collect();
 
-        SetCursorPos(coordinates_enter[0], coordinates_enter[1]);
+        SetCursorPos(coordinates_escape[0], coordinates_escape[1]);
         sleep(time::Duration::from_millis(50));
-        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
-        move_mouse(coordinates_enter[0], coordinates_enter[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+        move_mouse(coordinates_escape[0], coordinates_escape[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+        move_mouse(coordinates_escape[0], coordinates_escape[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
+    }
+
+    unsafe fn menu_exit(&self) {
+        let settings = self.settings.section(Some("UserInterfaceGeneral")).unwrap();
+        let position_exit = settings.get("PositionExit").unwrap().split(",");
+        let coordinates_exit: Vec<i32> = position_exit.map(|s| s.parse::<i32>().unwrap()).collect();
+
+        SetCursorPos(coordinates_exit[0], coordinates_exit[1]);
+        sleep(time::Duration::from_millis(50));
+        move_mouse(coordinates_exit[0], coordinates_exit[1], MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_ABSOLUTE);
+        move_mouse(coordinates_exit[0], coordinates_exit[1], MOUSEEVENTF_LEFTUP | MOUSEEVENTF_ABSOLUTE);
     }
 }

@@ -16,6 +16,7 @@ pub(crate) trait HotKeys {
     unsafe fn hotkeys_cc_dummies(&self);
     unsafe fn hotkeys_cc_dummies_2(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
+    unsafe fn hotkeys_simple_mode_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self);
     unsafe fn hotkeys_clip_shadow_play(&self);
@@ -48,6 +49,10 @@ impl HotKeys for AerodromeExp {
 
     unsafe fn hotkeys_auto_combat_toggle(&self) {
         press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ToggleAutoCombat");
+    }
+
+    unsafe fn hotkeys_simple_mode_toggle(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ToggleSimpleMode");
     }
 
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self) {
