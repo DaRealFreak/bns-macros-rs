@@ -698,7 +698,7 @@ impl Poharan {
 
         // auto combat bugging sometimes, so activate it only after moving a bit
         send_key(VK_W, true);
-        sleep(time::Duration::from_millis(500));
+        sleep(time::Duration::from_millis(100));
         send_key(VK_W, false);
 
         info!("activating auto combat on the warlock again in case we missed the second force master");
