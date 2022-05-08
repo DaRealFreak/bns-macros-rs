@@ -7,7 +7,7 @@ use std::thread::sleep;
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_S, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_V, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -685,6 +685,12 @@ impl Aerodrome {
 
             // disable fly hack if we ran into a timeout while disabling it
             self.hotkeys_fly_hack_disable();
+
+            // warlock may be stuck if party dissolves while he is still in the loading screen from exiting the party
+            if hwnd.0 == self.start_hwnd.0 {
+                send_keys(vec![VK_SHIFT,VK_V], true);
+                send_keys(vec![VK_SHIFT,VK_V], false);
+            }
 
             if !self.resurrect_visible() {
                 // send every possibly required key to get out of quest windows/dialogues

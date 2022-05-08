@@ -2,11 +2,11 @@ use std::thread::sleep;
 use std::time;
 
 use log::{info, warn};
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_TAB, VK_V, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_TAB, VK_V, VK_W, VK_Y};
 
 use bns_utility::{send_key, send_keys};
 
-use crate::{HotKeys, Aerodrome, UserInterface};
+use crate::{Aerodrome, HotKeys, UserInterface};
 use crate::memory::Memory;
 
 pub(crate) trait Dungeon {
@@ -158,6 +158,7 @@ impl Dungeon for Aerodrome {
         send_key(VK_W, true);
 
         let mut sprinting = false;
+        let mut moving = false;
         let start = time::Instant::now();
         loop {
             self.activity.check_game_activity();
@@ -171,8 +172,28 @@ impl Dungeon for Aerodrome {
             }
 
             if start.elapsed().as_secs() > 40 {
+                send_keys(vec![VK_W, VK_D, VK_A], false);
                 warn!("ran into a timeout");
                 return false;
+            }
+
+            // too far left to get through the doorway
+            if !moving && self.get_player_pos_y() < -10105f32 {
+                info!("too far left, moving right to fit through the doorway");
+                send_key(VK_D, true);
+                moving = true;
+            }
+
+            // too far right to get through the doorway
+            if !moving && self.get_player_pos_y() > -9920f32 {
+                info!("too far right, moving left to fit through the doorway");
+                send_key(VK_A, true);
+                moving = true;
+            }
+
+            // we started moving and are now in the right coordinates between the doorway
+            if moving && self.get_player_pos_y() >= -10105f32 && self.get_player_pos_y() <= -9920f32 {
+                send_keys(vec![VK_D, VK_A], false);
             }
 
             // deactivate animation speed hack to prevent speeding right through the portal lol

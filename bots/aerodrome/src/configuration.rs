@@ -55,8 +55,8 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("UserInterfaceGeneral"))
         .set("PositionOutOfLoadingScreen", "811,794")
         .set("OutOfLoadingScreen", "0xED5E11")
-        .set("PositionLoadingScreen", "1861,1062")
-        .set("LoadingScreen", "0x090303")
+        .set("PositionLoadingScreen", "1861,1062;29,1063")
+        .set("LoadingScreen", "0x090303,0xF47700")
         .set("PositionExit", "1770,870");
 
     // user interface settings related to the dungeon elements
