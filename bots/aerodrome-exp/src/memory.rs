@@ -110,7 +110,12 @@ impl Memory for AerodromeExp {
     }
 
     unsafe fn current_exp(&mut self) -> u64 {
-        self.read_memory_value(GetForegroundWindow(), self.base_address_user_interface(), self.offsets_current_exp(), 0u64)
+        let exp = self.read_memory_value(GetForegroundWindow(), self.base_address_user_interface(), self.offsets_current_exp(), 0u64);
+        if exp == 0 {
+            return self.run_start_exp + self.gained_exp;
+        } else {
+            exp
+        }
     }
 
     unsafe fn next_level_exp(&mut self) -> u64 {

@@ -55,8 +55,8 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("UserInterfaceGeneral"))
         .set("PositionOutOfLoadingScreen", "811,794")
         .set("OutOfLoadingScreen", "0xED5E11")
-        .set("PositionLoadingScreen", "1861,1062")
-        .set("LoadingScreen", "0x090303")
+        .set("PositionLoadingScreen", "1861,1062;29,1063")
+        .set("LoadingScreen", "0x090303,0xF47700")
         .set("PositionExit", "1770,870");
 
     // user interface settings related to the dungeon elements
@@ -76,8 +76,8 @@ pub(crate) fn create_ini() {
     conf.with_section(Some("UserInterfacePlayer"))
         .set("PositionReviveVisible", "1042,900")
         .set("ReviveVisible", "0x9B8D71")
-        .set("PositionResurrectVisible", "1133,708")
-        .set("ResurrectVisible", "0xCAB94E")
+        .set("PositionResurrectVisible", "1150,727")
+        .set("ResurrectVisible", "0xD7CE36")
         .set("PositionThrallReady", "825,900")
         .set("ThrallReady", "0x01040E")
         .set("PositionOutOfCombat", "841,837")

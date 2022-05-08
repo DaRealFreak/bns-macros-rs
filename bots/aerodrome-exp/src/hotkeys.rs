@@ -16,6 +16,7 @@ pub(crate) trait HotKeys {
     unsafe fn hotkeys_cc_dummies(&self);
     unsafe fn hotkeys_cc_dummies_2(&self);
     unsafe fn hotkeys_auto_combat_toggle(&self);
+    unsafe fn hotkeys_simple_mode_toggle(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self);
     unsafe fn hotkeys_cheat_engine_speed_hack_disable(&self);
     unsafe fn hotkeys_clip_shadow_play(&self);
@@ -50,6 +51,10 @@ impl HotKeys for AerodromeExp {
         press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ToggleAutoCombat");
     }
 
+    unsafe fn hotkeys_simple_mode_toggle(&self) {
+        press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "ToggleSimpleMode");
+    }
+
     unsafe fn hotkeys_cheat_engine_speed_hack_enable(&self) {
         for _ in 0..10 {
             press_keys(self.settings.section(Some("Hotkeys")).unwrap(), "CheatEngineSpeedHackOn");
@@ -75,8 +80,10 @@ pub(crate) unsafe fn press_keys(properties: &Properties, hotkey: &str) {
 
     for hotkey in raw_hotkeys {
         let hotkey_without_prefix = hotkey.trim_start_matches("0x");
-        let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
-        keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        if hotkey != "" {
+            let virtual_key = u16::from_str_radix(hotkey_without_prefix, 16);
+            keys.push(VIRTUAL_KEY(virtual_key.unwrap()));
+        }
     }
 
     send_keys(keys.clone(), true);

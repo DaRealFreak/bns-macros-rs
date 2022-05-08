@@ -78,19 +78,33 @@ impl AerodromeExp {
 
         info!("game window found, starting exp farm");
 
-        self.enter_lobby();
+        if !self.return_lobby() {
+            self.enter_lobby();
+        }
 
         loop {
+            if self.return_lobby() {
+                self.enter_lobby();
+            }
+
             if !self.move_to_dungeon() {
                 self.hotkeys_clip_shadow_play();
 
                 self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
                 warn!("run failed after {:?} seconds", self.run_start_timestamp.elapsed().as_secs());
 
+                if self.current_exp() > self.run_start_exp {
+                    self.gained_exp += self.current_exp() - self.run_start_exp;
+                }
+                self.run_count += 1;
+                self.log_statistics();
+
                 info!("starting fail safe");
                 self.fail_safe();
 
-                self.enter_lobby();
+                if !self.return_lobby() {
+                    self.enter_lobby();
+                }
             } else {
                 if self.run_failed {
                     self.failed_runs.push(self.run_start_timestamp.elapsed().as_millis());
@@ -99,13 +113,13 @@ impl AerodromeExp {
                     self.successful_runs.push(self.run_start_timestamp.elapsed().as_millis());
                     info!("run took {:?} seconds to complete", self.run_start_timestamp.elapsed().as_secs());
                 }
-            }
 
-            if self.current_exp() > self.run_start_exp {
-                self.gained_exp += self.current_exp() - self.run_start_exp;
+                if self.current_exp() > self.run_start_exp {
+                    self.gained_exp += self.current_exp() - self.run_start_exp;
+                }
+                self.run_count += 1;
+                self.log_statistics();
             }
-            self.run_count += 1;
-            self.log_statistics();
         }
     }
 
@@ -228,6 +242,8 @@ impl AerodromeExp {
                 self.hotkeys_use_repair_tools();
                 sleep(time::Duration::from_millis(250));
             }
+        } else {
+            sleep(time::Duration::from_millis(500));
         }
 
         info!("enable animation speed hack for the warlock");
@@ -292,12 +308,16 @@ impl AerodromeExp {
 
     unsafe fn kill_dummies(&mut self) -> bool {
         self.change_camera_to_degrees(90f32);
-        sleep(time::Duration::from_millis(3850));
+        sleep(time::Duration::from_millis(4500));
+
+        send_key(VK_W, true);
+        sleep(time::Duration::from_millis(50));
+        send_key(VK_W, false);
 
         info!("cc'ing the dummies");
-        for _ in 0..5 {
+        for _ in 0..10 {
             self.hotkeys_dummy_opener();
-            sleep(time::Duration::from_millis(100));
+            sleep(time::Duration::from_millis(70));
         }
 
         info!("starting auto combat");
@@ -307,7 +327,7 @@ impl AerodromeExp {
         loop {
             self.activity.check_game_activity();
 
-            if start.elapsed().as_millis() > 3000 {
+            if start.elapsed().as_millis() > 2000 {
                 self.hotkeys_cc_dummies();
                 sleep(time::Duration::from_millis(100));
             }
@@ -330,6 +350,11 @@ impl AerodromeExp {
 
         info!("deactivating auto combat");
         self.hotkeys_auto_combat_toggle();
+
+        sleep(time::Duration::from_secs(1));
+
+        info!("deactivating simple mode");
+        self.hotkeys_simple_mode_toggle();
 
         // either get out of combat or die to totems
         loop {
@@ -355,7 +380,11 @@ impl AerodromeExp {
             }
 
             if self.out_of_combat() {
-                return false;
+                if self.return_lobby() {
+                    break;
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -382,8 +411,21 @@ impl AerodromeExp {
             }
 
             self.hotkeys_cheat_engine_speed_hack_disable();
-            send_key(VK_W, true);
-            self.change_camera_to_degrees(180f32);
+
+            if self.return_lobby() {
+                // repeat escape one more time in case we cancelled resurrect with the previous escape
+                send_key(VK_ESCAPE, true);
+                send_key(VK_ESCAPE, false);
+                sleep(time::Duration::from_millis(500));
+                self.menu_exit();
+
+                sleep(time::Duration::from_millis(500));
+                send_key(VK_Y, true);
+                send_key(VK_Y, false);
+            } else {
+                self.change_camera_to_degrees(180f32);
+                send_key(VK_W, true);
+            }
 
             sleep(time::Duration::from_secs(1));
         }
@@ -400,14 +442,11 @@ impl AerodromeExp {
         let average_run_time_fail: u128 = sum / (if self.failed_runs.len() > 0 { self.failed_runs.len() } else { 1 }) as u128;
 
         let average_runs_per_hour = time::Duration::from_secs(3600).as_millis() as f64 / (average_run_time_success as f64 * success_rate + average_run_time_fail as f64 * fail_rate);
-        let expected_successful_runs_per_hour = average_runs_per_hour * success_rate;
-
-        let average_exp_per_hour = expected_successful_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
+        let average_exp_per_hour = average_runs_per_hour * self.gained_exp as f64 / self.run_count as f64;
         let next_level = (self.next_level_exp() as f64 - self.current_exp() as f64) / (if average_exp_per_hour > 0f64 { average_exp_per_hour } else { 1f64 });
 
         info!("runs done: {} (died in {} out of {} runs ({:.2}%)), average run time: {:.2} seconds", self.run_count, self.failed_runs.len(), self.run_count, fail_rate * 100.0, average_run_time_success as f64 / 1000.0);
         info!("gained exp: {}, total gained exp: {}, expected exp per hour: {:.2}, expected level up in {:.2} hours", (self.current_exp() - self.run_start_exp), self.gained_exp, average_exp_per_hour, next_level);
-        info!("expected runs per hour: {:.2}", expected_successful_runs_per_hour);
     }
 
     unsafe fn fail_safe(&mut self) {
@@ -423,31 +462,33 @@ impl AerodromeExp {
             sleep(time::Duration::from_millis(100));
         }
 
-        loop {
-            self.activity.check_game_activity();
+        if !self.return_lobby() {
+            loop {
+                self.activity.check_game_activity();
 
-            if self.get_player_pos_x() == 10624f32 {
-                info!("escape successful");
-                break;
+                if self.get_player_pos_x() == 10624f32 {
+                    info!("escape successful");
+                    break;
+                }
+
+                // send every possibly required key to get out of quest windows/dialogues
+                for _ in 0..10 {
+                    // spam Y and F more often before any N key interaction than N to accept quests
+                    send_keys(vec![VK_Y, VK_F], true);
+                    send_keys(vec![VK_Y, VK_F], false);
+                    sleep(time::Duration::from_millis(100));
+                }
+
+                send_keys(vec![VK_Y, VK_N, VK_F], true);
+                send_keys(vec![VK_Y, VK_N, VK_F], false);
+                sleep(time::Duration::from_millis(150));
+
+                // open menu and click on exit
+                send_key(VK_ESCAPE, true);
+                send_key(VK_ESCAPE, false);
+                sleep(time::Duration::from_millis(500));
+                self.menu_escape();
             }
-
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
-            }
-
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
-
-            // open menu and click on exit
-            send_key(VK_ESCAPE, true);
-            send_key(VK_ESCAPE, false);
-            sleep(time::Duration::from_millis(500));
-            self.menu_escape();
         }
 
         self.leave_dungeon(false);
@@ -462,6 +503,12 @@ impl AerodromeExp {
         let position_settings = section_settings.get("CombatTime").unwrap();
 
         position_settings.parse::<u64>().unwrap()
+    }
+
+    unsafe fn return_lobby(&self) -> bool {
+        let section_settings = self.settings.section(Some("Configuration")).unwrap();
+        let lobby_settings = section_settings.get("ReturnLobby").unwrap();
+        lobby_settings == "true"
     }
 }
 

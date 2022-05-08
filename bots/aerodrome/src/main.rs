@@ -7,7 +7,7 @@ use std::thread::sleep;
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_ESCAPE, VK_F, VK_N, VK_S, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_4, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_V, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -447,7 +447,7 @@ impl Aerodrome {
         self.activate_auto_combat();
 
         // sleep to get into combat before checking out of combat for fight over
-        sleep(time::Duration::from_secs(1));
+        sleep(time::Duration::from_secs(10));
 
         let start = time::Instant::now();
         loop {
@@ -683,32 +683,42 @@ impl Aerodrome {
                 break;
             }
 
+            // if by any chance auto combat didn't get activated but the team killed the boss nonetheless
+            // we would be stuck since we can't read quest letters while being dead, so revive here
+            if self.dynamic_reward_visible() && self.revive_visible() {
+                send_key(VK_4, true);
+                send_key(VK_4, false);
+                continue;
+            }
+
             // disable fly hack if we ran into a timeout while disabling it
             self.hotkeys_fly_hack_disable();
 
-            // send every possibly required key to get out of quest windows/dialogues
-            for _ in 0..10 {
-                // spam Y and F more often before any N key interaction than N to accept quests
-                send_keys(vec![VK_Y, VK_F], true);
-                send_keys(vec![VK_Y, VK_F], false);
-                sleep(time::Duration::from_millis(100));
+            // warlock may be stuck if party dissolves while he is still in the loading screen from exiting the party
+            if hwnd.0 == self.start_hwnd.0 {
+                send_keys(vec![VK_SHIFT,VK_V], true);
+                send_keys(vec![VK_SHIFT,VK_V], false);
             }
 
-            send_keys(vec![VK_Y, VK_N, VK_F], true);
-            send_keys(vec![VK_Y, VK_N, VK_F], false);
-            sleep(time::Duration::from_millis(150));
+            if !self.resurrect_visible() {
+                // send every possibly required key to get out of quest windows/dialogues
+                for _ in 0..10 {
+                    // spam Y and F more often before any N key interaction than N to accept quests
+                    send_keys(vec![VK_Y, VK_F], true);
+                    send_keys(vec![VK_Y, VK_F], false);
+                    sleep(time::Duration::from_millis(100));
+                }
+
+                send_keys(vec![VK_Y, VK_N, VK_F], true);
+                send_keys(vec![VK_Y, VK_N, VK_F], false);
+                sleep(time::Duration::from_millis(150));
+            }
 
             // open menu and click on exit
             send_key(VK_ESCAPE, true);
             send_key(VK_ESCAPE, false);
             sleep(time::Duration::from_millis(500));
 
-            if self.resurrect_visible() {
-                // repeat escape one more time in case we cancelled resurrect with the previous escape
-                send_key(VK_ESCAPE, true);
-                send_key(VK_ESCAPE, false);
-                sleep(time::Duration::from_millis(500));
-            }
             self.menu_exit();
         }
     }

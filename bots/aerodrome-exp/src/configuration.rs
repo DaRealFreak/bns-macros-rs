@@ -5,9 +5,10 @@ pub(crate) fn create_ini() {
 
     // everything related to the bot configuration itself
     conf.with_section(Some("Configuration"))
-        .set("FarmStage", "60")
-        .set("CombatTime", "17")
+        .set("FarmStage", "59")
+        .set("CombatTime", "10")
         .set("AnimationSpeedHackValue", "5.5")
+        .set("ReturnLobby", "true")
         .set("LogFile", "aerodrome_exp.log");
 
     conf.with_section(Some("Pointers"))
@@ -25,9 +26,10 @@ pub(crate) fn create_ini() {
         .set("UseSoup", "0x35")
         .set("UseExpCharm", "0x36")
         .set("UseRepairTools", "0x37")
-        .set("DummyOpener", "0x09,0x33")
-        .set("CcDummies", "0x43,0x5A")
-        .set("CcDummies2", "0x33")
+        .set("DummyOpener", "0x32,0x33")
+        .set("CcDummies", "")
+        .set("CcDummies2", "")
+        .set("ToggleSimpleMode", "0x90")
         .set("ToggleAutoCombat", "0xA0,0x73")
         .set("CheatEngineSpeedHackOn", "0x91")
         .set("CheatEngineSpeedHackOff", "0x63")
@@ -56,7 +58,8 @@ pub(crate) fn create_ini() {
         .set("SoupActive", "0x553A54,0x85693B")
         .set("PositionExpCharmActive", "20,6;55,7")
         .set("ExpCharmActive", "0x4D2C1A,0x9E6135")
-        .set("PositionEscape", "1520,842");
+        .set("PositionEscape", "1520,842")
+        .set("PositionExit", "1770,870");
 
     // user interface settings related to the player interactions
     conf.with_section(Some("UserInterfacePlayer"))
