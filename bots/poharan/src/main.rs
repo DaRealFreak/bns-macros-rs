@@ -1,13 +1,13 @@
+use std::{fs, time};
 use std::collections::HashMap;
 use std::path::Path;
 use std::process::exit;
 use std::thread::sleep;
-use std::{fs, time};
 
 use ini::Ini;
 use log::{info, warn};
 use windows::Win32::Foundation::HWND;
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_4, VK_A, VK_D, VK_ESCAPE, VK_F, VK_N, VK_S, VK_SHIFT, VK_W, VK_Y};
 use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
 
 use bns_utility::{send_key, send_keys};
@@ -896,6 +896,14 @@ impl Poharan {
 
             if self.in_f8_lobby() || self.in_loading_screen() {
                 break;
+            }
+
+            // if by any chance auto combat didn't get activated but the team killed the boss nonetheless
+            // we would be stuck since we can't read quest letters while being dead, so revive here
+            if self.dynamic_reward_visible() && self.revive_visible() {
+                send_key(VK_4, true);
+                send_key(VK_4, false);
+                continue;
             }
 
             // disable fly hack if we ran into a timeout while disabling it
