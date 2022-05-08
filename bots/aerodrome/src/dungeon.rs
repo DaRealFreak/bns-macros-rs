@@ -178,14 +178,14 @@ impl Dungeon for Aerodrome {
             }
 
             // too far left to get through the doorway
-            if !moving && self.get_player_pos_y() < -10105f32 {
+            if !moving && self.get_player_pos_x() < 38000f32 && self.get_player_pos_y() < -10105f32 {
                 info!("too far left, moving right to fit through the doorway");
                 send_key(VK_D, true);
                 moving = true;
             }
 
             // too far right to get through the doorway
-            if !moving && self.get_player_pos_y() > -9920f32 {
+            if !moving && self.get_player_pos_x() < 38000f32 && self.get_player_pos_y() > -9920f32 {
                 info!("too far right, moving left to fit through the doorway");
                 send_key(VK_A, true);
                 moving = true;
