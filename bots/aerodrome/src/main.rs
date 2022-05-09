@@ -712,6 +712,10 @@ impl Aerodrome {
                 send_keys(vec![VK_Y, VK_N, VK_F], true);
                 send_keys(vec![VK_Y, VK_N, VK_F], false);
                 sleep(time::Duration::from_millis(150));
+            } else {
+                send_key(VK_Y, true);
+                send_key(VK_Y, false);
+                sleep(time::Duration::from_millis(150));
             }
 
             // open menu and click on exit
