@@ -3,6 +3,7 @@ use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_1, VK_3, VK_E, VK_T, VK_X};
+
 use bns_utility::send_key;
 
 use crate::{BnsMacro, BnsMacroCreation};
@@ -29,6 +30,10 @@ impl BnsMacro for DestroyerThird {
 
     unsafe fn class_active(&self, hdc: HDC) -> bool {
         GetPixel(hdc, 823, 902) == 10787442
+    }
+
+    unsafe fn iframe(&mut self, _hdc: HDC, _key: u16) -> bool {
+        false
     }
 
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {

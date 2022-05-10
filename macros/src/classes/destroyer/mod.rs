@@ -2,7 +2,6 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState};
 use bns_utility::send_key;
 
 use crate::classes::{BnsMacro, BnsMacroCreation};
@@ -33,37 +32,33 @@ impl BnsMacro for Destroyer {
         GetPixel(hdc, 823, 902) == 12886080
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
-        // c iframe
-        if GetAsyncKeyState(Destroyer::skill_searing_strike().0 as i32) < 0 {
-            send_key(Destroyer::skill_searing_strike(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
+    unsafe fn iframe(&mut self, hdc: HDC, key: u16) -> bool {
+        if key == Destroyer::skill_searing_strike().0 {
             loop {
+                if !Destroyer::skill_searing_strike_available(hdc) {
+                    break;
+                }
                 send_key(Destroyer::skill_searing_strike(), true);
                 send_key(Destroyer::skill_searing_strike(), false);
-                if Destroyer::skill_searing_strike_unavailable(hdc) {
+                sleep(time::Duration::from_millis(1));
+            }
+            return true;
+        } else if key == Destroyer::skill_typhoon().0 {
+            loop {
+                if !Destroyer::skill_typhoon_available(hdc) {
                     break;
                 }
-            }
-            BlockInput(false);
-        }
-
-        // q iframe
-        if GetAsyncKeyState(Destroyer::skill_typhoon().0 as i32) < 0 {
-            send_key(Destroyer::skill_typhoon(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
-            loop {
                 send_key(Destroyer::skill_typhoon(), true);
                 send_key(Destroyer::skill_typhoon(), false);
-                if Destroyer::skill_typhoon_unavailable(hdc) {
-                    break;
-                }
+                sleep(time::Duration::from_millis(1));
             }
-            BlockInput(false);
+            return true;
         }
 
+        false
+    }
+
+    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
         let fury_available = Destroyer::skill_fury_available(hdc);
 
         // change flag to use fury after next mighty cleave again

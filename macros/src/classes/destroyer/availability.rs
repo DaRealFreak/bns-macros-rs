@@ -10,8 +10,8 @@ pub(crate) trait Availability {
     unsafe fn skill_smash_available(hdc: HDC) -> bool;
     unsafe fn skill_emberstomp_available(hdc: HDC) -> bool;
     unsafe fn skill_wrath3_available(hdc: HDC) -> bool;
-    unsafe fn skill_searing_strike_unavailable(hdc: HDC) -> bool;
-    unsafe fn skill_typhoon_unavailable(hdc: HDC) -> bool;
+    unsafe fn skill_searing_strike_available(hdc: HDC) -> bool;
+    unsafe fn skill_typhoon_available(hdc: HDC) -> bool;
 }
 
 impl Availability for Destroyer {
@@ -52,11 +52,13 @@ impl Availability for Destroyer {
         GetPixel(hdc, 1276, 887) == 1318963
     }
 
-    unsafe fn skill_searing_strike_unavailable(hdc: HDC) -> bool {
-        GetPixel(hdc, 987, 950) == 2042418
+    unsafe fn skill_searing_strike_available(hdc: HDC) -> bool {
+        let pxl = GetPixel(hdc, 987, 950);
+        pxl == 3298669 || pxl == 4294967295
     }
 
-    unsafe fn skill_typhoon_unavailable(hdc: HDC) -> bool {
-        GetPixel(hdc, 695, 887) == 3287635
+    unsafe fn skill_typhoon_available(hdc: HDC) -> bool {
+        let pxl = GetPixel(hdc, 695, 887);
+        pxl == 5851324 || pxl == 4294967295
     }
 }

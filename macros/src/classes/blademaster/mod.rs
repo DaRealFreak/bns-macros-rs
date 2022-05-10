@@ -27,6 +27,10 @@ impl BnsMacro for BladeMaster {
         GetPixel(hdc, 891, 888) == 14591851
     }
 
+    unsafe fn iframe(&mut self, _hdc: HDC, _key: u16) -> bool {
+        false
+    }
+
     unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
         // talisman sync with soul
         if dps && general_is_soul_triggered(hdc) {
