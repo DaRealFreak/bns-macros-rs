@@ -54,8 +54,8 @@ pub(crate) fn create_ini() {
 
     // user interface settings related to the party management
     conf.with_section(Some("UserInterfaceGeneral"))
-        .set("PositionOutOfLoadingScreen", "811,794")
-        .set("OutOfLoadingScreen", "0xED5E11")
+        .set("PositionOutOfLoadingScreen", "811,794;75,1048")
+        .set("OutOfLoadingScreen", "0xED5E11,0x000001")
         .set("PositionLoadingScreen", "1861,1062")
         .set("LoadingScreen", "0x090303")
         .set("PositionExit", "1770,870");
