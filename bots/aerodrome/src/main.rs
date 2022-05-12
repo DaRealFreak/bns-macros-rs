@@ -669,6 +669,7 @@ impl Aerodrome {
             sleep(time::Duration::from_millis(100));
         }
 
+        info!("out of loading screen, continuing to go to lobby");
         loop {
             self.activity.check_game_activity();
 
@@ -720,6 +721,11 @@ impl Aerodrome {
             sleep(time::Duration::from_millis(500));
 
             self.menu_exit();
+            sleep(time::Duration::from_millis(500));
+
+            send_key(VK_Y, true);
+            send_key(VK_Y, false);
+            sleep(time::Duration::from_millis(150));
         }
     }
 

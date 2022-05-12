@@ -9,6 +9,8 @@ pub(crate) trait Availability {
 
 impl Availability for Warlock {
     unsafe fn skill_bastion_available(hdc: HDC) -> bool {
-        GetPixel(hdc, 950, 951) == 1916506
+        let pxl = GetPixel(hdc, 892, 950);
+        // either correct value or CLR_INVALID (0xffffffff)
+        pxl == 1916506 || pxl == 4294967295
     }
 }

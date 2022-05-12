@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time;
 
-use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
+use windows::Win32::Graphics::Gdi::HDC;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_T;
 
 use bns_utility::send_key;
@@ -10,21 +10,21 @@ use crate::{BnsMacro, BnsMacroCreation};
 use crate::general::{general_is_soul_triggered, general_talisman};
 
 #[derive(Copy, Clone)]
-pub(crate) struct BladeMaster {}
+pub(crate) struct Default {}
 
-impl BnsMacroCreation for BladeMaster {
+impl BnsMacroCreation for Default {
     fn new() -> Self {
-        BladeMaster {}
+        Default {}
     }
 }
 
-impl BnsMacro for BladeMaster {
+impl BnsMacro for Default {
     fn name(&self) -> String {
-        "Fire Blade Master".parse().unwrap()
+        "Default".parse().unwrap()
     }
 
-    unsafe fn class_active(&self, hdc: HDC) -> bool {
-        GetPixel(hdc, 891, 888) == 14591851
+    unsafe fn class_active(&self, _hdc: HDC) -> bool {
+        true
     }
 
     unsafe fn iframe(&mut self, _macro_button: i32, _hdc: HDC, _key: u16) -> bool {

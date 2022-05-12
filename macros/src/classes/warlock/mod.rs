@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState, VK_G, VK_T};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_G, VK_T};
 
 use bns_utility::send_key;
 
@@ -32,22 +32,23 @@ impl BnsMacro for Warlock {
         GetPixel(hdc, 891, 887) == 1581715
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
-        // c iframe
-        if GetAsyncKeyState(Warlock::skill_bastion().0 as i32) < 0 {
-            send_key(Warlock::skill_bastion(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
+    unsafe fn iframe(&mut self, _macro_button: i32, hdc: HDC, key: u16) -> bool {
+        if key == Warlock::skill_bastion().0 {
             loop {
                 if !Warlock::skill_bastion_available(hdc) {
                     break;
                 }
                 send_key(Warlock::skill_bastion(), true);
                 send_key(Warlock::skill_bastion(), false);
+                sleep(time::Duration::from_millis(1));
             }
-            BlockInput(false);
+            return true;
         }
 
+        false
+    }
+
+    unsafe fn rotation(&mut self, _macro_button: i32, hdc: HDC, dps: bool) {
         // talisman sync with soul
         if dps && general_is_soul_triggered(hdc) {
             send_key(general_talisman(), true);

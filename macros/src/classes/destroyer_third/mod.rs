@@ -3,6 +3,7 @@ use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_1, VK_3, VK_E, VK_T, VK_X};
+
 use bns_utility::send_key;
 
 use crate::{BnsMacro, BnsMacroCreation};
@@ -31,7 +32,11 @@ impl BnsMacro for DestroyerThird {
         GetPixel(hdc, 823, 902) == 10787442
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
+    unsafe fn iframe(&mut self, _macro_button: i32, _hdc: HDC, _key: u16) -> bool {
+        false
+    }
+
+    unsafe fn rotation(&mut self, _macro_button: i32, hdc: HDC, dps: bool) {
         if dps && DestroyerThird::skill_ironclad_available(hdc) && general_is_soul_triggered(hdc) {
             send_key(VK_E, true);
             send_key(VK_E, false);

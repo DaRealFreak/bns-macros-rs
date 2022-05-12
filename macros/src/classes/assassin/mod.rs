@@ -2,7 +2,7 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
-use windows::Win32::UI::Input::KeyboardAndMouse::{BlockInput, GetAsyncKeyState, VK_0, VK_4, VK_T};
+use windows::Win32::UI::Input::KeyboardAndMouse::{VK_0, VK_4, VK_T};
 
 use bns_utility::send_key;
 
@@ -32,12 +32,8 @@ impl BnsMacro for Assassin {
         GetPixel(hdc, 741, 887) == 6064411
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
-        // c iframe
-        if GetAsyncKeyState(Assassin::skill_night_fury().0 as i32) < 0 {
-            send_key(Assassin::skill_night_fury(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
+    unsafe fn iframe(&mut self, _macro_button: i32, hdc: HDC, key: u16) -> bool {
+        if key == Assassin::skill_night_fury().0 {
             loop {
                 if !Assassin::skill_night_fury_available(hdc) {
                     break;
@@ -45,14 +41,8 @@ impl BnsMacro for Assassin {
                 send_key(Assassin::skill_night_fury(), true);
                 send_key(Assassin::skill_night_fury(), false);
             }
-            BlockInput(false);
-        }
-
-        // e iframe
-        if GetAsyncKeyState(Assassin::skill_shunpo().0 as i32) < 0 {
-            send_key(Assassin::skill_shunpo(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
+            return true;
+        } else if key == Assassin::skill_shunpo().0 {
             loop {
                 if !Assassin::skill_shunpo_available(hdc) {
                     break;
@@ -60,14 +50,8 @@ impl BnsMacro for Assassin {
                 send_key(Assassin::skill_shunpo(), true);
                 send_key(Assassin::skill_shunpo(), false);
             }
-            BlockInput(false);
-        }
-
-        // q iframe
-        if GetAsyncKeyState(Assassin::skill_shadow_dance().0 as i32) < 0 {
-            send_key(Assassin::skill_shadow_dance(), false);
-            sleep(time::Duration::from_millis(10));
-            BlockInput(true);
+            return true;
+        } else if key == Assassin::skill_shadow_dance().0 {
             loop {
                 if !Assassin::skill_shadow_dance_available(hdc) {
                     break;
@@ -75,9 +59,13 @@ impl BnsMacro for Assassin {
                 send_key(Assassin::skill_shadow_dance(), true);
                 send_key(Assassin::skill_shadow_dance(), false);
             }
-            BlockInput(false);
+            return true;
         }
 
+        false
+    }
+
+    unsafe fn rotation(&mut self, _macro_button: i32, hdc: HDC, dps: bool) {
         // talisman sync with soul
         if dps && general_is_soul_triggered(hdc) {
             send_key(general_talisman(), true);

@@ -5,12 +5,14 @@ use windows::Win32::Graphics::Gdi::HDC;
 use crate::classes::assassin::Assassin;
 
 use crate::classes::blademaster::BladeMaster;
+use crate::classes::default::Default as DefaultClass;
 use crate::classes::destroyer::Destroyer;
 use crate::classes::destroyer_third::DestroyerThird;
 use crate::classes::warlock::Warlock;
 
 pub(crate) mod assassin;
 pub(crate) mod blademaster;
+pub(crate) mod default;
 pub(crate) mod destroyer;
 pub(crate) mod destroyer_third;
 pub(crate) mod warlock;
@@ -19,7 +21,8 @@ pub(crate) mod warlock;
 pub(crate) trait BnsMacro {
     fn name(&self) -> String;
     unsafe fn class_active(&self, hdc: HDC) -> bool;
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool);
+    unsafe fn iframe(&mut self, macro_button: i32, hdc: HDC, key: u16) -> bool;
+    unsafe fn rotation(&mut self, macro_button: i32, hdc: HDC, dps: bool);
     fn box_clone(&self) -> Box<dyn BnsMacro>;
 }
 
@@ -59,12 +62,13 @@ impl MacroDetection for Macro {
     }
 
     unsafe fn detect(&mut self, hdc: HDC) {
-        let implemented_classes: [Box<dyn BnsMacro>; 5] = [
+        let implemented_classes: [Box<dyn BnsMacro>; 6] = [
             Box::new(Assassin::new()),
             Box::new(BladeMaster::new()),
             Box::new(Destroyer::new()),
             Box::new(DestroyerThird::new()),
             Box::new(Warlock::new()),
+            Box::new(DefaultClass::new()),
         ];
 
         // check every macro if their respective class is currently active
