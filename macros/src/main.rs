@@ -23,8 +23,12 @@ extern "system" fn hook_callback(code: i32, wparam: WPARAM, lparam: LPARAM) -> L
             if wparam.0 as u32 == WM_KEYDOWN && code as u32 == HC_ACTION {
                 let vk_code_inner = *(lparam.0 as *const u16) as u16;
 
-                if GetAsyncKeyState(0x86) < 0 || GetAsyncKeyState(0x87) < 0 {
-                    if LOADED_MACRO.clone().unwrap().iframe(CURRENT_HDC.unwrap(), vk_code_inner) {
+                if GetAsyncKeyState(0x86) < 0 {
+                    if LOADED_MACRO.clone().unwrap().iframe(0x86, CURRENT_HDC.unwrap(), vk_code_inner) {
+                        return LRESULT { 0: 1 };
+                    }
+                } else if GetAsyncKeyState(0x87) < 0 {
+                    if LOADED_MACRO.clone().unwrap().iframe(0x87, CURRENT_HDC.unwrap(), vk_code_inner) {
                         return LRESULT { 0: 1 };
                     }
                 }
@@ -85,12 +89,12 @@ fn main() {
 
             // f23
             if GetAsyncKeyState(0x86) < 0 {
-                current_class.loaded_macro.rotation(CURRENT_HDC.unwrap(), true);
+                current_class.loaded_macro.rotation(0x86, CURRENT_HDC.unwrap(), true);
             }
 
             // f24
             if GetAsyncKeyState(0x87) < 0 {
-                current_class.loaded_macro.rotation(CURRENT_HDC.unwrap(), false);
+                current_class.loaded_macro.rotation(0x87, CURRENT_HDC.unwrap(), false);
             }
         }
     }

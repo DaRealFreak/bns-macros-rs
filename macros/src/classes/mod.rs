@@ -21,8 +21,8 @@ pub(crate) mod warlock;
 pub(crate) trait BnsMacro {
     fn name(&self) -> String;
     unsafe fn class_active(&self, hdc: HDC) -> bool;
-    unsafe fn iframe(&mut self, hdc: HDC, key: u16) -> bool;
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool);
+    unsafe fn iframe(&mut self, macro_button: i32, hdc: HDC, key: u16) -> bool;
+    unsafe fn rotation(&mut self, macro_button: i32, hdc: HDC, dps: bool);
     fn box_clone(&self) -> Box<dyn BnsMacro>;
 }
 

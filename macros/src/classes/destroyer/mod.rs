@@ -2,6 +2,7 @@ use std::thread::sleep;
 use std::time;
 
 use windows::Win32::Graphics::Gdi::{GetPixel, HDC};
+use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 use bns_utility::send_key;
 
 use crate::classes::{BnsMacro, BnsMacroCreation};
@@ -32,10 +33,10 @@ impl BnsMacro for Destroyer {
         GetPixel(hdc, 823, 902) == 12886080
     }
 
-    unsafe fn iframe(&mut self, hdc: HDC, key: u16) -> bool {
+    unsafe fn iframe(&mut self, macro_button: i32, hdc: HDC, key: u16) -> bool {
         if key == Destroyer::skill_searing_strike().0 {
             loop {
-                if !Destroyer::skill_searing_strike_available(hdc) {
+                if !Destroyer::skill_searing_strike_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
                 }
                 send_key(Destroyer::skill_searing_strike(), true);
@@ -45,7 +46,7 @@ impl BnsMacro for Destroyer {
             return true;
         } else if key == Destroyer::skill_typhoon().0 {
             loop {
-                if !Destroyer::skill_typhoon_available(hdc) {
+                if !Destroyer::skill_typhoon_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
                 }
                 send_key(Destroyer::skill_typhoon(), true);
@@ -58,7 +59,7 @@ impl BnsMacro for Destroyer {
         false
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
+    unsafe fn rotation(&mut self, macro_button: i32, hdc: HDC, dps: bool) {
         let fury_available = Destroyer::skill_fury_available(hdc);
 
         // change flag to use fury after next mighty cleave again
@@ -73,7 +74,7 @@ impl BnsMacro for Destroyer {
                 send_key(Destroyer::skill_wrath(), false);
                 sleep(time::Duration::from_millis(10));
 
-                if !Destroyer::skill_mighty_cleave_available(hdc) {
+                if !Destroyer::skill_mighty_cleave_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
                 }
             }
@@ -84,7 +85,7 @@ impl BnsMacro for Destroyer {
                     send_key(Destroyer::skill_fury(), false);
                     sleep(time::Duration::from_millis(5));
 
-                    if !Destroyer::skill_fury_available(hdc) {
+                    if !Destroyer::skill_fury_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                         break;
                     }
                 }
@@ -98,7 +99,7 @@ impl BnsMacro for Destroyer {
                         send_key(Destroyer::skill_smash(), false);
                         sleep(time::Duration::from_millis(5));
 
-                        if !Destroyer::skill_smash_available(hdc) {
+                        if !Destroyer::skill_smash_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                             break;
                         }
                     }
@@ -108,7 +109,7 @@ impl BnsMacro for Destroyer {
                         send_key(Destroyer::skill_emberstomp(), false);
                         sleep(time::Duration::from_millis(5));
 
-                        if !Destroyer::skill_emberstomp_available(hdc) {
+                        if !Destroyer::skill_emberstomp_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                             break;
                         }
                     }
@@ -125,7 +126,7 @@ impl BnsMacro for Destroyer {
                 send_key(Destroyer::skill_wrath(), false);
                 sleep(time::Duration::from_millis(10));
 
-                if !Destroyer::skill_wrath3_available(hdc) {
+                if !Destroyer::skill_wrath3_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
                 }
             }
@@ -169,7 +170,7 @@ impl BnsMacro for Destroyer {
                     send_key(Destroyer::skill_emberstomp(), true);
                     send_key(Destroyer::skill_emberstomp(), false);
 
-                    if !Destroyer::skill_emberstomp_available(hdc) {
+                    if !Destroyer::skill_emberstomp_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                         break;
                     }
                 }
@@ -183,7 +184,7 @@ impl BnsMacro for Destroyer {
                     send_key(Destroyer::skill_wrath(), false);
                     sleep(time::Duration::from_millis(10));
 
-                    if !Destroyer::skill_mighty_cleave_available(hdc) {
+                    if !Destroyer::skill_mighty_cleave_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                         break;
                     }
                 }

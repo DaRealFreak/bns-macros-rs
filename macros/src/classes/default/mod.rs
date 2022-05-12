@@ -27,11 +27,11 @@ impl BnsMacro for Default {
         true
     }
 
-    unsafe fn iframe(&mut self, _hdc: HDC, _key: u16) -> bool {
+    unsafe fn iframe(&mut self, _macro_button: i32, _hdc: HDC, _key: u16) -> bool {
         false
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
+    unsafe fn rotation(&mut self, _macro_button: i32, hdc: HDC, dps: bool) {
         // talisman sync with soul
         if dps && general_is_soul_triggered(hdc) {
             send_key(general_talisman(), true);

@@ -32,7 +32,7 @@ impl BnsMacro for Warlock {
         GetPixel(hdc, 891, 887) == 1581715
     }
 
-    unsafe fn iframe(&mut self, hdc: HDC, key: u16) -> bool {
+    unsafe fn iframe(&mut self, _macro_button: i32, hdc: HDC, key: u16) -> bool {
         if key == Warlock::skill_bastion().0 {
             loop {
                 if !Warlock::skill_bastion_available(hdc) {
@@ -48,7 +48,7 @@ impl BnsMacro for Warlock {
         false
     }
 
-    unsafe fn rotation(&mut self, hdc: HDC, dps: bool) {
+    unsafe fn rotation(&mut self, _macro_button: i32, hdc: HDC, dps: bool) {
         // talisman sync with soul
         if dps && general_is_soul_triggered(hdc) {
             send_key(general_talisman(), true);
