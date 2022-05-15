@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 use std::thread::sleep;
 use std::time;
 
@@ -27,7 +29,7 @@ impl BnsMacro for BladeMaster {
         GetPixel(hdc, 891, 888) == 14591851
     }
 
-    unsafe fn iframe(&mut self, _macro_button: i32, _hdc: HDC, _key: u16) -> bool {
+    unsafe fn iframe(&mut self, mut _iframing: Arc<Mutex<AtomicBool>>, _macro_button: i32, _hdc: HDC, _key: u16) -> bool {
         false
     }
 

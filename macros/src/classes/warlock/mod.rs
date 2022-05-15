@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 use std::thread::sleep;
 use std::time;
 
@@ -32,7 +34,7 @@ impl BnsMacro for Warlock {
         GetPixel(hdc, 891, 887) == 1581715
     }
 
-    unsafe fn iframe(&mut self, _macro_button: i32, hdc: HDC, key: u16) -> bool {
+    unsafe fn iframe(&mut self, mut _iframing: Arc<Mutex<AtomicBool>>, _macro_button: i32, hdc: HDC, key: u16) -> bool {
         if key == Warlock::skill_bastion().0 {
             loop {
                 if !Warlock::skill_bastion_available(hdc) {

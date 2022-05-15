@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 use std::thread::sleep;
 use std::time;
 
@@ -32,7 +34,7 @@ impl BnsMacro for Assassin {
         GetPixel(hdc, 741, 887) == 6064411
     }
 
-    unsafe fn iframe(&mut self, _macro_button: i32, hdc: HDC, key: u16) -> bool {
+    unsafe fn iframe(&mut self, mut _iframing: Arc<Mutex<AtomicBool>>, _macro_button: i32, hdc: HDC, key: u16) -> bool {
         if key == Assassin::skill_night_fury().0 {
             loop {
                 if !Assassin::skill_night_fury_available(hdc) {

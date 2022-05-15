@@ -1,5 +1,7 @@
 //#![windows_subsystem = "windows"]
 use std::process::exit;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 use std::thread::sleep;
 use std::time;
 
@@ -17,18 +19,22 @@ mod classes;
 static mut CURRENT_HDC: Option<HDC> = None;
 static mut LOADED_MACRO: Option<Box<dyn BnsMacro>> = None;
 
+static mut TMP: Option<Arc<Mutex<AtomicBool>>> = None;
+
 extern "system" fn hook_callback(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     unsafe {
         if LOADED_MACRO.is_some() && CURRENT_HDC.is_some() {
+            let iframe = Arc::clone(&TMP.clone().unwrap());
+
             if wparam.0 as u32 == WM_KEYDOWN && code as u32 == HC_ACTION {
                 let vk_code_inner = *(lparam.0 as *const u16) as u16;
 
                 if GetAsyncKeyState(0x86) < 0 {
-                    if LOADED_MACRO.clone().unwrap().iframe(0x86, CURRENT_HDC.unwrap(), vk_code_inner) {
+                    if LOADED_MACRO.clone().unwrap().iframe(iframe, 0x86, CURRENT_HDC.unwrap(), vk_code_inner) {
                         return LRESULT { 0: 1 };
                     }
                 } else if GetAsyncKeyState(0x87) < 0 {
-                    if LOADED_MACRO.clone().unwrap().iframe(0x87, CURRENT_HDC.unwrap(), vk_code_inner) {
+                    if LOADED_MACRO.clone().unwrap().iframe(iframe, 0x87, CURRENT_HDC.unwrap(), vk_code_inner) {
                         return LRESULT { 0: 1 };
                     }
                 }
@@ -44,6 +50,7 @@ fn main() {
         CURRENT_HDC = Some(GetDC(HWND::default()));
         let mut current_class = Macro::new(CURRENT_HDC.unwrap());
         LOADED_MACRO = Some(current_class.loaded_macro.box_clone());
+        TMP = Some(Arc::new(Mutex::new(AtomicBool::new(false))));
 
         std::thread::spawn(|| {
             // Register global hook, thread hook would not work since we're a non GUI thread

@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicBool;
 use std::thread::sleep;
 use std::time;
 
@@ -33,8 +35,13 @@ impl BnsMacro for Destroyer {
         GetPixel(hdc, 823, 902) == 12886080
     }
 
-    unsafe fn iframe(&mut self, macro_button: i32, hdc: HDC, key: u16) -> bool {
+    unsafe fn iframe(&mut self, iframing: Arc<Mutex<AtomicBool>>, macro_button: i32, hdc: HDC, key: u16) -> bool {
         if key == Destroyer::skill_searing_strike().0 {
+            if *iframing.lock().unwrap().get_mut() == true {
+                return true
+            }
+
+            *iframing.lock().unwrap().get_mut() = true;
             loop {
                 if !Destroyer::skill_searing_strike_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
@@ -43,8 +50,14 @@ impl BnsMacro for Destroyer {
                 send_key(Destroyer::skill_searing_strike(), false);
                 sleep(time::Duration::from_millis(1));
             }
+            *iframing.lock().unwrap().get_mut() = false;
             return true;
         } else if key == Destroyer::skill_typhoon().0 {
+            if *iframing.lock().unwrap().get_mut() == true {
+                return true
+            }
+
+            *iframing.lock().unwrap().get_mut() = true;
             loop {
                 if !Destroyer::skill_typhoon_available(hdc) || GetAsyncKeyState(macro_button) >= 0 {
                     break;
@@ -53,6 +66,7 @@ impl BnsMacro for Destroyer {
                 send_key(Destroyer::skill_typhoon(), false);
                 sleep(time::Duration::from_millis(1));
             }
+            *iframing.lock().unwrap().get_mut() = false;
             return true;
         }
 
