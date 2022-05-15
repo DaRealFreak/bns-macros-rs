@@ -11,13 +11,13 @@ pub(crate) fn create_ini() {
         .set("LogFile", "poharan_multibox.log");
 
     conf.with_section(Some("Pointers"))
-        .set("BaseAddressPlayer", "0x07536B40")
+        .set("BaseAddressPlayer", "0x077B2C90")
         .set("OffsetsAnimationSpeed", "0x30,0x2C0,0x98")
-        .set("OffsetsCameraYaw", "")
+        .set("OffsetsCameraYaw", "0x30,0x2FC")
         .set("OffsetsPlayerX", "0x30,0x2C0,0x130,0x1F0")
         .set("OffsetsPlayerY", "0x30,0x2C0,0x130,0x1F4")
         .set("OffsetsPlayerZ", "0x30,0x2C0,0x130,0x1F8")
-        .set("BaseAddressDungeon", "0x074B5AF0")
+        .set("BaseAddressDungeon", "0x07730148")
         .set("OffsetsDungeonStage", "0xA0,0x8D8,0x28,0x1D0")
         .set("OffsetsLobbyNumber", "0xA0,0x8D8,0x28,0x20");
 
@@ -45,7 +45,7 @@ pub(crate) fn create_ini() {
         .set("PositionReady", "962,1037")
         .set("PositionDungeonSelected", "1686,317")
         .set("DungeonSelected", "0x3E261C")
-        .set("PositionClickDungeon", "1561,666")
+        .set("PositionClickDungeon", "1561,738")
         .set("PositionStageSelected", "1732,485")
         .set("StageSelected", "0xE2E2E2")
         .set("PositionStageRightSide", "1747,478")

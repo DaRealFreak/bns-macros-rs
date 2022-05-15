@@ -2,9 +2,8 @@
 members = [
     "utility",
     "bots/poharan",
-    "bots/aerodrome",
-    "bots/aerodrome-exp",
-    "macros"
+    "macros",
+    "macros-dll"
 ]
 
 [profile.dev]
